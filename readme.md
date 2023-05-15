@@ -35,8 +35,10 @@ const loginRules = {
 };
 
 class LoginValidator extends BaseValidator {
-    super();
-    super.init(loginRules);
+    constructor() {
+      super();
+      super.init(loginRules);
+    }
 }
 
 // validator for sign-up form
@@ -45,8 +47,10 @@ const signUpRules = {
 };
 
 class SignUpValidator extends LoginValidator {
-  super();
-  super.init(signUpRules);
+  constructor() {
+    super();
+    super.init(signUpRules);
+  }
 }
 
 // validator instances
