@@ -63,6 +63,7 @@ console.log(loginValidator.validate({}));
 
 // express app config
 const app = express();
+app.use(express.json());
 
 // use validator as a middleware
 // note: the middleware method accepts status-code as an argument, 422 is the default

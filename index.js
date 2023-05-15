@@ -21,7 +21,7 @@ class BaseValidator {
         this._rules = {...this._rules, ...rules};
     }
 
-    _validator(rules, body, errors, prefix = "") {
+    _validate(rules, body, errors, prefix = "") {
         for(const ruleField in rules) {
             const address = prefix ? `${prefix}.${ruleField}` : ruleField;
             if(validators[DATA_TYPE.object](rules[ruleField])) {
@@ -33,7 +33,7 @@ class BaseValidator {
                     setObjectValue(errors, address, "invalid value");
                     continue;
                 }
-                this._validator(rules[ruleField], body[ruleField], errors, address);
+                this._validate(rules[ruleField], body[ruleField], errors, address);
             }else{
                 const errorMessage = rules[ruleField].validate(body[ruleField]);
                 if(errorMessage !== null) {
@@ -50,9 +50,13 @@ class BaseValidator {
     }
 
     middleware(status = 422) {
+        const _this = this;
         return function(req, res, next) {
-            const messages = this.validate(req.body);
-            if(Object.keys(req.body).length > 0) {
+            if(!req.body) {
+                throw new Error("request body not found, you're probably not parsing the request body");
+            }
+            const messages = _this.validate(req.body);
+            if(Object.keys(messages).length > 0) {
                 res.status(status).json(messages);
             }else{
                 next();
@@ -62,7 +66,7 @@ class BaseValidator {
 
     validate(body) {
         const errors = {};
-        this._validator(this._rules, body, errors);
+        this._validate(this._rules, body, errors);
         return errors;
     }
 }
