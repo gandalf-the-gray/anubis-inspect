@@ -16,7 +16,7 @@ export class IntegerField extends ValidatorField {
     }
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.integer, isRequired: FloatField.defaultIsRequired, userDefinedTests: FloatField.defaultUserDefinedTests});
+        super({valueIdentifier, type: DATA_TYPE.integer, isRequired: IntegerField.defaultIsRequired, userDefinedTests: IntegerField.defaultUserDefinedTests});
         this._valueRange = [IntegerField.defaultMin, IntegerField.defaultMax];
         this._setErrorMessageRequiredValue();
         this._setErrorMessageInvalidType();

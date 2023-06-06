@@ -31,7 +31,7 @@ export class DateField extends ValidatorField {
         this._errorMessageInvalidType = message !== undefined ? message : `invalid value, ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.date]} expected`;
     }
 
-    _setErrorMessageRangeMin(message) {
+    _setErrorMessageRangeMax(message) {
         if(this._dateRange[0] === null) {
             return;
         }
