@@ -46,7 +46,7 @@ export class ArrayField extends ValidatorField {
     }
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.array, isRequired: ArrayField.defaultIsRequired, userDefinedTests: []});
+        super({valueIdentifier, type: DATA_TYPE.array, isRequired: ArrayField.defaultIsRequired});
         this._lengthRange = [ArrayField.defaultMinLength, ArrayField.defaultMaxLength];
         this._containedValueValidator = ArrayField.defaultContainedTypeValidator;
         this._nested = true;

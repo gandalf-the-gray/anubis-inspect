@@ -13,7 +13,7 @@ export class DateField extends ValidatorField {
     }
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.date, isRequired: DateField.defaultIsRequired, userDefinedTests: []});
+        super({valueIdentifier, type: DATA_TYPE.date, isRequired: DateField.defaultIsRequired});
         this._dateRange = [null, null];
         this._setErrorMessageRequiredValue();
         this._setErrorMessageInvalidType();

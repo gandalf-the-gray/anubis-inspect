@@ -16,7 +16,7 @@ export class StringField extends ValidatorField {
     }
 
     constructor(valueIdentifier){
-        super({valueIdentifier, type: DATA_TYPE.string, isRequired: StringField.defaultIsRequired, userDefinedTests: []});
+        super({valueIdentifier, type: DATA_TYPE.string, isRequired: StringField.defaultIsRequired});
         this._lengthRange = [StringField.defaultMinLength, StringField.defaultMaxLength];
         this._pattern = StringField.defaultPattern;
         this._setErrorMessageValueRequired();

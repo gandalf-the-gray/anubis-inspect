@@ -15,7 +15,7 @@ export class FloatField extends ValidatorField {
     }
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.float, isRequired: FloatField.defaultIsRequired, userDefinedTests: []});
+        super({valueIdentifier, type: DATA_TYPE.float, isRequired: FloatField.defaultIsRequired});
         this._valueRange = [FloatField.defaultMin, FloatField.defaultMax];
         this._setErrorMessageRequiredValue();
         this._setErrorMessageInvalidType();

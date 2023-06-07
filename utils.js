@@ -6,14 +6,14 @@ import { DATA_TYPE, JAVASCRIPT_TYPE } from "./constants.js";
 // All validator classes will inherit from the following class
 // This will help to check if an object in the rules is a plain object or a validator
 export class ValidatorField {
-    constructor({valueIdentifier, type, isRequired, userDefinedTests}) {
+    constructor({valueIdentifier, type, isRequired}) {
         this._valueIdentifier = valueIdentifier;
         // It might seem strange that I'm making almost all internal utilities private
         // but type is public, the 'type' getter will be used by other types such as objects and arrays
         // to validate the values they contain, that is why it needs to be public
         this.type = type;
         this._isRequired = isRequired;
-        this._userDefinedTests = userDefinedTests;
+        this._userDefinedTests = [];
     }
 }
 
