@@ -1,6 +1,6 @@
 {
   "name": "anubis-inspect",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "A simple and extendible object validator",
   "main": "index.js",
   "type": "module",
