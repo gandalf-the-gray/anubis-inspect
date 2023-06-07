@@ -36,7 +36,7 @@ export class StringField extends ValidatorField {
     }
 
     _setErrorMessageRangeMin(message) {
-        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must not have less than ${this._lengthRange[0]} characters`;
+        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must have at least ${this._lengthRange[0]} characters`;
     }
 
     _setErrorMessageRangeMax(message) {

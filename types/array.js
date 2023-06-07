@@ -67,7 +67,7 @@ export class ArrayField extends ValidatorField {
     }
 
     _setErrorMessageRangeMin(message) {
-        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must not have less than ${this._lengthRange[0]} values`;
+        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must have at least ${this._lengthRange[0]} values`;
     }
 
     _setErrorMessageRangeMax(message) {
@@ -75,7 +75,7 @@ export class ArrayField extends ValidatorField {
     }
 
     _setErrorMessageNested(message) {
-        this._errorMessageNested = message !== undefined ? message : `${this._valueIdentifier} must not contain a nested ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.array]}`;
+        this._errorMessageNested = message !== undefined ? message : `${this._valueIdentifier} must not contain an ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.array]}`;
     }
 
     _setErrorMessageInvalidContainedValue(message) {

@@ -33,7 +33,7 @@ export class IntegerField extends ValidatorField {
     }
 
     _setErrorMessageRangeMin(message) {
-        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must not be less than ${this._valueRange[0]}`;
+        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must be at least ${this._valueRange[0]}`;
     }
 
     _setErrorMessageRangeMax(message) {
