@@ -14,6 +14,7 @@ export class ValidatorField {
         this.type = type;
         this._isRequired = isRequired;
         this._userDefinedTests = [];
+        this.userDefinedAsyncTests = [];
     }
 }
 
@@ -27,6 +28,10 @@ function isTruthyValue(value){
 
 export function isNullish(value) {
     return value === null || value === undefined;
+}
+
+export function isAsyncFunction(fn) {
+    return fn?.constructor?.name === "AsyncFunction";
 }
 
 export function formateDate(date, locality = "en-US") {
@@ -45,6 +50,19 @@ export function setObjectValue(object, address, value) {
         }
         if(object[keys[i]] === undefined) {
             object[keys[i]] = {};
+        }
+        object = object[keys[i]];
+    }
+}
+
+export function getObjectValue(object, address) {
+    const keys = address.split(".");
+    for(let i = 0; i < keys.length; i++) {
+        if(i === keys.length - 1) {
+            return object[keys[i]];
+        }
+        if(object[keys[i]] === undefined) {
+            return undefined;
         }
         object = object[keys[i]];
     }

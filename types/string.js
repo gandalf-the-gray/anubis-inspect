@@ -1,5 +1,5 @@
-import { DATA_TYPE, DATA_TYPE_TO_COMMON_NAME } from "../constants.js";
-import { ValidatorField, isNullish, patternDescriptors, patterns, validators } from "../utils.js";
+import { DATA_TYPE, DATA_TYPE_TO_COMMON_NAME, DEFAULT_INVALID_VALUE_MESSAGE } from "../constants.js";
+import { ValidatorField, isNullish, isAsyncFunction, patternDescriptors, patterns, validators } from "../utils.js";
 
 export class StringField extends ValidatorField {
     static defaultIsRequired = false;
@@ -48,7 +48,7 @@ export class StringField extends ValidatorField {
     }
 
     _setErrorMessageFailedUserDefinedTest(message) {
-        this._errorMessageFailedUserDefinedTest = message !== undefined ? message : "invalid value";
+        this._errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
     }
 
     _assertUserDefinedTests(value) {
@@ -91,7 +91,11 @@ export class StringField extends ValidatorField {
     }
 
     test(testFun, message = undefined) {
-        this._userDefinedTests.push([testFun, message]);
+        if(isAsyncFunction(testFun)) {
+            this.userDefinedAsyncTests.push([testFun, message]);
+        } else {
+            this._userDefinedTests.push([testFun, message]);
+        }
         return this;
     }
 
