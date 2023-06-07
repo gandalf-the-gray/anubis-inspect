@@ -22,23 +22,16 @@ class BaseValidator {
     }
 
     _validate(rules, body, errors, prefix = "") {
+        body = validators[DATA_TYPE.object](body) ? body : {};
         for(const ruleField in rules) {
             const address = prefix ? `${prefix}.${ruleField}` : ruleField;
             if(validators[DATA_TYPE.object](rules[ruleField])) {
-                if(isNullish(body[ruleField])) {
-                    setObjectValue(errors, address, `${ruleField} is required`);
-                    continue;
-                }
-                if(!validators[DATA_TYPE.object](body[ruleField])) {
-                    setObjectValue(errors, address, "invalid value");
-                    continue;
-                }
                 this._validate(rules[ruleField], body[ruleField], errors, address);
-            }else{
-                const errorMessage = rules[ruleField].validate(body[ruleField]);
-                if(errorMessage !== null) {
-                    setObjectValue(errors, address, errorMessage);
-                }
+                continue;
+            }
+            const errorMessage = rules[ruleField].validate(body[ruleField]);
+            if(errorMessage !== null) {
+                setObjectValue(errors, address, errorMessage);
             }
         }
         for(const bodyField in body) {
