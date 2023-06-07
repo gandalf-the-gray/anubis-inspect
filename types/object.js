@@ -6,10 +6,9 @@ export class ObjectField extends ValidatorField {
     static defaultValueType = null;
     static defaultRangeMin = 0;
     static defaultRangeMax = Infinity;
-    static defaultUserDefinedTests = [];
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.object, isRequired: ObjectField.defaultIsRequired, userDefinedTests: ObjectField.defaultUserDefinedTests});
+        super({valueIdentifier, type: DATA_TYPE.object, isRequired: ObjectField.defaultIsRequired, userDefinedTests: []});
         this._lengthRange = [ObjectField.defaultRangeMin, ObjectField.defaultRangeMax];
         this._containedValueValidator = ObjectField.defaultValueType;
         this._nested = true;

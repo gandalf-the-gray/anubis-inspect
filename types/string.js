@@ -6,7 +6,6 @@ export class StringField extends ValidatorField {
     static defaultMinLength = 0;
     static defaultMaxLength = Infinity;
     static defaultPattern = null;
-    static defaultUserDefinedTests = [];
 
     static email(valueIdentifier, message = undefined) {
         return new StringField(valueIdentifier).match(patterns[patternDescriptors.email], message);
@@ -17,7 +16,7 @@ export class StringField extends ValidatorField {
     }
 
     constructor(valueIdentifier){
-        super({valueIdentifier, type: DATA_TYPE.string, isRequired: StringField.defaultIsRequired, userDefinedTests: StringField.defaultUserDefinedTests});
+        super({valueIdentifier, type: DATA_TYPE.string, isRequired: StringField.defaultIsRequired, userDefinedTests: []});
         this._lengthRange = [StringField.defaultMinLength, StringField.defaultMaxLength];
         this._pattern = StringField.defaultPattern;
         this._setErrorMessageValueRequired();

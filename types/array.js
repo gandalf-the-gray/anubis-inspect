@@ -12,7 +12,6 @@ export class ArrayField extends ValidatorField {
     static defaultMinLength = 0;
     static defaultMaxLength = Infinity;
     static defaultContainedTypeValidator = null;
-    static defaultUserDefinedTests = [];
 
     static _getInvalidTypeMessage(valueIdentifier, type) {
         return `${valueIdentifier} must only have ${type} values`;
@@ -47,7 +46,7 @@ export class ArrayField extends ValidatorField {
     }
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.array, isRequired: ArrayField.defaultIsRequired, userDefinedTests: ArrayField.defaultUserDefinedTests});
+        super({valueIdentifier, type: DATA_TYPE.array, isRequired: ArrayField.defaultIsRequired, userDefinedTests: []});
         this._lengthRange = [ArrayField.defaultMinLength, ArrayField.defaultMaxLength];
         this._containedValueValidator = ArrayField.defaultContainedTypeValidator;
         this._nested = true;

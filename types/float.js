@@ -5,7 +5,6 @@ export class FloatField extends ValidatorField {
     static defaultIsRequired = false;
     static defaultMin = -Infinity;
     static defaultMax = Infinity;
-    static defaultUserDefinedTests = [];
 
     static lt(valueIdentifier, maxValue, message = undefined){
         return new FloatField(valueIdentifier).max(maxValue - 1, message);
@@ -16,7 +15,7 @@ export class FloatField extends ValidatorField {
     }
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.float, isRequired: FloatField.defaultIsRequired, userDefinedTests: FloatField.defaultUserDefinedTests});
+        super({valueIdentifier, type: DATA_TYPE.float, isRequired: FloatField.defaultIsRequired, userDefinedTests: []});
         this._valueRange = [FloatField.defaultMin, FloatField.defaultMax];
         this._setErrorMessageRequiredValue();
         this._setErrorMessageInvalidType();

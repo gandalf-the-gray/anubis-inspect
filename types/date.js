@@ -3,7 +3,6 @@ import { ValidatorField, formateDate, isNullish, validators } from "../utils.js"
 
 export class DateField extends ValidatorField {
     static defaultIsRequired = false;
-    static defaultUserDefinedTests = [];
 
     static before(valueIdentifier, date, message = undefined) {
         return new DateField(valueIdentifier).max(date, message);
@@ -14,7 +13,7 @@ export class DateField extends ValidatorField {
     }
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.date, isRequired: DateField.defaultIsRequired, userDefinedTests: DateField.defaultUserDefinedTests});
+        super({valueIdentifier, type: DATA_TYPE.date, isRequired: DateField.defaultIsRequired, userDefinedTests: []});
         this._dateRange = [null, null];
         this._setErrorMessageRequiredValue();
         this._setErrorMessageInvalidType();

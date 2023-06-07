@@ -5,7 +5,6 @@ export class IntegerField extends ValidatorField {
     static defaultIsRequired = false;
     static defaultMin = -Infinity;
     static defaultMax = Infinity;
-    static defaultUserDefinedTests = [];
 
     static lt(valueIdentifier, maxValue, message = undefined){
         return new IntegerField(valueIdentifier).ma(maxValue - 1, message);
@@ -16,7 +15,7 @@ export class IntegerField extends ValidatorField {
     }
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.integer, isRequired: IntegerField.defaultIsRequired, userDefinedTests: IntegerField.defaultUserDefinedTests});
+        super({valueIdentifier, type: DATA_TYPE.integer, isRequired: IntegerField.defaultIsRequired, userDefinedTests: []});
         this._valueRange = [IntegerField.defaultMin, IntegerField.defaultMax];
         this._setErrorMessageRequiredValue();
         this._setErrorMessageInvalidType();
@@ -46,7 +45,7 @@ export class IntegerField extends ValidatorField {
     }
 
     _assertUserDefinedTests(value) {
-        for(const [test, message] of this._useDefinedTests) {
+        for(const [test, message] of this._userDefinedTests) {
             if(!test(value)) {
                 this._setErrorMessageFailedUserDefinedTest(message);
                 return false;
@@ -79,7 +78,7 @@ export class IntegerField extends ValidatorField {
     }
 
     test(testFun, message = undefined) {
-        this._useDefinedTests.push([testFun, message]);
+        this._userDefinedTests.push([testFun, message]);
         return this;
     }
 
@@ -99,7 +98,7 @@ export class IntegerField extends ValidatorField {
         if(value > this._valueRange[1]) {
             return this._errorMessageRangeMax;
         }
-        if(this._useDefinedTests.length > 0 && !this._assertUserDefinedTests(value)) {
+        if(this._userDefinedTests.length > 0 && !this._assertUserDefinedTests(value)) {
             return this._errorMessageFailedUserDefinedTest;
         }
         return null;

@@ -5,7 +5,6 @@ export class NumberField extends ValidatorField {
     static defaultIsRequired = false;
     static defaultMin = -Infinity;
     static defaultMax = Infinity;
-    static defaultUserDefinedTests = [];
 
     static lt(valueIdentifier, maxValue, message = undefined){
         return new NumberField(valueIdentifier).max(maxValue - 1, message);
@@ -16,7 +15,7 @@ export class NumberField extends ValidatorField {
     }
 
     constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.number, isRequired: NumberField.defaultIsRequired, userDefinedTests: NumberField.defaultUserDefinedTests});
+        super({valueIdentifier, type: DATA_TYPE.number, isRequired: NumberField.defaultIsRequired, userDefinedTests: []});
         this._valueRange = [NumberField.defaultMin, NumberField.defaultMax];
         this._setErrorMessageRequiredValue();
         this._setErrorMessageInvalidType();
