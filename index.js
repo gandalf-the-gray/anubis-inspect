@@ -16,32 +16,36 @@ class BaseValidator {
         this._rules = {};
         this._asyncTestQueue = [];
         this._cachedAsyncTests = false;
-        this._unknownFieldMessage = "Unknown field";
     }
 
     init(rules) {
         this._rules = {...this._rules, ...rules};
     }
 
-    _validate(rules, body, errors, prefix = "") {
+    _validate(rules, body, prefix = "") {
         body = validators[DATA_TYPE.object](body) ? body : {};
+        let errors = null;
         for(const ruleField in rules) {
             const address = prefix ? `${prefix}.${ruleField}` : ruleField;
+            let error = null;
             if(validators[DATA_TYPE.object](rules[ruleField])) {
-                this._validate(rules[ruleField], body[ruleField], errors, address);
-                continue;
+                error = this._validate(rules[ruleField], body[ruleField], address);
+            } else {
+                error = rules[ruleField].validate(body[ruleField]);
             }
-            const errorMessage = rules[ruleField].validate(body[ruleField]);
-            if(errorMessage !== null) {
-                setObjectValue(errors, address, errorMessage);
+            if(error !== null) {
+                errors = errors ? errors : {};
+                setObjectValue(errors, address, error);
             }
         }
         for(const bodyField in body) {
             if(rules[bodyField] === undefined) {
                 const address = prefix ? `${prefix}.${bodyField}` : bodyField;
+                errors = errors ? errors : {};
                 setObjectValue(errors, address, "unknown field");
             }
         }
+        return errors;
     }
 
     cacheAsyncTests(rules, prefix = "") {
@@ -60,16 +64,11 @@ class BaseValidator {
     }
 
     validate(body) {
-        const errors = {};
-
-        // Run synchronous tests
-        this._validate(this._rules, body, errors);
-
-        return errors;
+        return this._validate(this._rules, body);
     }
 
     async asyncValidate(body, res) {
-        const errors = this.validate(body);
+        let errors = this.validate(body);
 
         if(!this.cachedAsyncTests) {
             this.cacheAsyncTests(this._rules);
@@ -84,6 +83,7 @@ class BaseValidator {
             );
             for(let i = 0; i < results.length; i++) {
                 if(!results[i]) {
+                    errors = errors ? errors : {};
                     setObjectValue(errors, this._asyncTestQueue[i][0], this._asyncTestQueue[i][2])
                 }
             }
@@ -99,7 +99,7 @@ class BaseValidator {
                 throw new Error("request body not found, you're probably not parsing the request body");
             }
             const messages = await _this.asyncValidate(req.body, res);
-            if(Object.keys(messages).length > 0) {
+            if(messages) {
                 res.status(status).json(messages);
             }else{
                 next();

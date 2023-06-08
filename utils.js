@@ -56,6 +56,9 @@ export function setObjectValue(object, address, value) {
 }
 
 export function getObjectValue(object, address) {
+    if(!object) {
+        return undefined;
+    }
     const keys = address.split(".");
     for(let i = 0; i < keys.length; i++) {
         if(i === keys.length - 1) {
