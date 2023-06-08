@@ -68,7 +68,7 @@ class BaseValidator {
         return errors;
     }
 
-    async asyncValidate(body) {
+    async asyncValidate(body, res) {
         const errors = this.validate(body);
 
         if(!this.cachedAsyncTests) {
@@ -79,7 +79,9 @@ class BaseValidator {
             const tasks = this._asyncTestQueue.filter(
                 (task) => getObjectValue(errors, task[0]) === undefined
             );
-            const results = await Promise.all(tasks.map((task) => task[1]()));
+            const results = await Promise.all(
+                tasks.map((task) => task[1](getObjectValue(body, task[0]), res))
+            );
             for(let i = 0; i < results.length; i++) {
                 if(!results[i]) {
                     setObjectValue(errors, this._asyncTestQueue[i][0], this._asyncTestQueue[i][2])
@@ -96,7 +98,7 @@ class BaseValidator {
             if(!req.body) {
                 throw new Error("request body not found, you're probably not parsing the request body");
             }
-            const messages = await _this.asyncValidate(req.body);
+            const messages = await _this.asyncValidate(req.body, res);
             if(Object.keys(messages).length > 0) {
                 res.status(status).json(messages);
             }else{
