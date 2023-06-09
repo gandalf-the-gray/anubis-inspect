@@ -18,31 +18,42 @@ class BaseValidator {
         this._cachedAsyncTests = false;
     }
 
-    init(rules) {
-        this._rules = {...this._rules, ...rules};
+    _init(superRules, newRules) {
+        const rules = {...superRules};
+        for(const ruleField in newRules) {
+            if(validators[DATA_TYPE.object](newRules[ruleField]) && validators[DATA_TYPE.object](superRules[ruleField])) {
+                rules[ruleField] = this._init(superRules[ruleField], newRules[ruleField]);
+            } else {
+                rules[ruleField] = newRules[ruleField];
+            }
+        }
+        return rules;
     }
 
-    _validate(rules, body, prefix = "") {
+    init(rules) {
+        // this._rules in the _init call refers to rules of the immediate super class
+        this._rules = this._init(this._rules, rules);
+    }
+
+    _validate(rules, body) {
         body = validators[DATA_TYPE.object](body) ? body : {};
         let errors = null;
         for(const ruleField in rules) {
-            const address = prefix ? `${prefix}.${ruleField}` : ruleField;
             let error = null;
             if(validators[DATA_TYPE.object](rules[ruleField])) {
-                error = this._validate(rules[ruleField], body[ruleField], address);
+                error = this._validate(rules[ruleField], body[ruleField]);
             } else {
                 error = rules[ruleField].validate(body[ruleField]);
             }
             if(error !== null) {
                 errors = errors ? errors : {};
-                setObjectValue(errors, address, error);
+                errors[ruleField] = error;
             }
         }
         for(const bodyField in body) {
             if(rules[bodyField] === undefined) {
-                const address = prefix ? `${prefix}.${bodyField}` : bodyField;
                 errors = errors ? errors : {};
-                setObjectValue(errors, address, "unknown field");
+                errors[bodyField] = "unknown field";
             }
         }
         return errors;
