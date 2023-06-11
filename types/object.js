@@ -26,7 +26,7 @@ export class ObjectField extends ValidatorField {
     }
 
     _setErrorMessageInvalidType(message) {
-        this._errorMessageInvalidType = message !== undefined ? message : `invalid value, expected ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.object]}`;
+        this._errorMessageInvalidType = message !== undefined ? message : `invalid value, expected an ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.object]}`;
     }
 
     _setErrorMessageRangeMin(message) {
@@ -70,7 +70,7 @@ export class ObjectField extends ValidatorField {
     }
 
     _assertUserDefinedTests(value) {
-        for(const [test, message] of this._userDefinedTests) {
+        for(const [test, message] of this.userDefinedTests.sync) {
             if(!test(value)) {
                 this._setErrorMessageFailedUserDefinedTest(message);
                 return false;
@@ -116,9 +116,9 @@ export class ObjectField extends ValidatorField {
 
     test(testFun, message = undefined) {
         if(isAsyncFunction(testFun)) {
-            this.userDefinedAsyncTests.push([testFun, message]);
+            this.userDefinedTests.async.push([testFun, message]);
         } else {
-            this._userDefinedTests.push([testFun, message]);
+            this.userDefinedTests.sync.push([testFun, message]);
         }
         return this;
     }
@@ -146,7 +146,7 @@ export class ObjectField extends ValidatorField {
                 return message;
             }
         }
-        if(this._userDefinedTests.length > 0 && !this._assertUserDefinedTests(value)) {
+        if(!this._assertUserDefinedTests(value)) {
             return this._errorMessageFailedUserDefinedTest;
         }
         return null;

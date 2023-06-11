@@ -13,8 +13,7 @@ export class ValidatorField {
         // to validate the values they contain, that is why it needs to be public
         this.type = type;
         this._isRequired = isRequired;
-        this._userDefinedTests = [];
-        this.userDefinedAsyncTests = [];
+        this.userDefinedTests = {sync: [], async: []};
     }
 }
 

@@ -29,7 +29,7 @@ export class IntegerField extends ValidatorField {
     }
 
     _setErrorMessageInvalidType(message) {
-        this._errorMessageInvalidType = message !== undefined ? message : `invalid value, ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.integer]} expected`;
+        this._errorMessageInvalidType = message !== undefined ? message : `invalid value, expected a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.integer]}`;
     }
 
     _setErrorMessageRangeMin(message) {
@@ -45,7 +45,7 @@ export class IntegerField extends ValidatorField {
     }
 
     _assertUserDefinedTests(value) {
-        for(const [test, message] of this._userDefinedTests) {
+        for(const [test, message] of this.userDefinedTests.sync) {
             if(!test(value)) {
                 this._setErrorMessageFailedUserDefinedTest(message);
                 return false;
@@ -79,9 +79,9 @@ export class IntegerField extends ValidatorField {
 
     test(testFun, message = undefined) {
         if(isAsyncFunction(testFun)) {
-            this.userDefinedAsyncTests.push([testFun, message]);
+            this.userDefinedTests.async.push([testFun, message]);
         } else {
-            this._userDefinedTests.push([testFun, message]);
+            this.userDefinedTests.sync.push([testFun, message]);
         }
         return this;
     }
@@ -102,7 +102,7 @@ export class IntegerField extends ValidatorField {
         if(value > this._valueRange[1]) {
             return this._errorMessageRangeMax;
         }
-        if(this._userDefinedTests.length > 0 && !this._assertUserDefinedTests(value)) {
+        if(!this._assertUserDefinedTests(value)) {
             return this._errorMessageFailedUserDefinedTest;
         }
         return null;

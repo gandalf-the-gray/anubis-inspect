@@ -67,7 +67,7 @@ class BaseValidator {
                 continue;
             }
             this._asyncTestQueue = this._asyncTestQueue.concat(
-                rules[ruleField].userDefinedAsyncTests.map(([testFn, message]) => {
+                rules[ruleField].userDefinedTests.async.map(([testFn, message]) => {
                     return [address, testFn, message ? message : DEFAULT_INVALID_VALUE_MESSAGE];
                 })
             );
