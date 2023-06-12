@@ -15,6 +15,30 @@ export class ValidatorField {
         this.isRequired = isRequired;
         this.userDefinedTests = {sync: [], async: []};
     }
+
+    test(testFun, message = undefined) {
+        if(isAsyncFunction(testFun)) {
+            this.userDefinedTests.async.push([testFun, message]);
+        } else {
+            this.userDefinedTests.sync.push([testFun, message]);
+        }
+        return this;
+    }
+
+    assertUserDefinedTests(value) {
+        for(let [test, message] of this.userDefinedTests.sync) {
+            let isValid = test(value);
+            if(Array.isArray(isValid)) {
+                message = isValid[1];
+                isValid = isValid[0];
+            }
+            if(!isValid) {
+                this.setErrorMessageFailedUserDefinedTest(message);
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 function isFiniteNumber(value) {

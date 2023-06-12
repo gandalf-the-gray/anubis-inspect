@@ -48,21 +48,6 @@ export class DateField extends ValidatorField {
         this.errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
     }
 
-    assertUserDefinedTests(value) {
-        for(const [test, message] of this.userDefinedTests.sync) {
-            let isValid = test(value);
-            if(Array.isArray(isValid)) {
-                message = isValid[1];
-                isValid = isValid[0];
-            }
-            if(!isValid) {
-                this.setErrorMessageFailedUserDefinedTest(message);
-                return false;
-            }
-        }
-        return true;
-    }
-
     invalidTypeMessage(message = undefined) {
         this.setErrorMessageInvalidType(message);
         return this;
@@ -83,15 +68,6 @@ export class DateField extends ValidatorField {
     max(rangeMax, message = undefined) {
         this.dateRange[1] = new Date(rangeMax);
         this.setErrorMessageRangeMax(message);
-        return this;
-    }
-
-    test(testFun, message = undefined) {
-        if(isAsyncFunction(testFun)) {
-            this.userDefinedTests.async.push([testFun, message]);
-        } else {
-            this.userDefinedTests.sync.push([testFun, message]);
-        }
         return this;
     }
 

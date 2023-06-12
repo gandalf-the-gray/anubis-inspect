@@ -102,21 +102,6 @@ export class ArrayField extends ValidatorField {
         return null;
     }
 
-    assertUserDefinedTests(value) {
-        for(let [test, message] of this.userDefinedTests.sync) {
-            let isValid = test(value);
-            if(Array.isArray(isValid)) {
-                message = isValid[1];
-                isValid = isValid[0];
-            }
-            if(!isValid) {
-                this.setErrorMessageFailedUserDefinedTest(message);
-                return false;
-            }
-        }
-        return true;
-    }
-
     invalidTypeMessage(message = undefined) {
         this.setErrorMessageInvalidType(message);
         return this;
@@ -149,15 +134,6 @@ export class ArrayField extends ValidatorField {
     notNested(message = undefined) {
         this.nested = false;
         this.setErrorMessageNested(message);
-        return this;
-    }
-
-    test(testFun, message = undefined) {
-        if(isAsyncFunction(testFun)) {
-            this.userDefinedTests.async.push([testFun, message]);
-        } else {
-            this.userDefinedTests.sync.push([testFun, message]);
-        }
         return this;
     }
 
