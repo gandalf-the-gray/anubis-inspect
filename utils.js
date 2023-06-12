@@ -14,6 +14,7 @@ export class ValidatorField {
         this.type = type;
         this.isRequired = isRequired;
         this.userDefinedTests = {sync: [], async: []};
+        this.dependantTests = {sync: [], async: []};
     }
 
     test(testFun, message = undefined) {
@@ -38,6 +39,15 @@ export class ValidatorField {
             }
         }
         return true;
+    }
+
+    dependantTest(testFn, dependencies, message) {
+        if(isAsyncFunction(testFn)) {
+            this.dependantTests.async.push([testFn, dependencies, message]);
+        } else {
+            this.dependantTests.sync.push([testFn, dependencies, message]);
+        }
+        return this;
     }
 }
 
