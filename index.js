@@ -150,7 +150,7 @@ class BaseValidator {
         })
 
         if(validAsyncDependantTests.length > 0) {
-            const results = await Promimse.all(
+            const results = await Promise.all(
                 validAsyncDependantTests.map(([fieldAddress, testFn, dependencies]) => {
                     const dependencyValues = dependencies.map((dep) => getObjectValue(body, dep));
                     return testFn(getObjectValue(body, fieldAddress), dependencyValues);
