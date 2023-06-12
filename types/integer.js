@@ -16,38 +16,38 @@ export class IntegerField extends ValidatorField {
 
     constructor(valueIdentifier) {
         super({valueIdentifier, type: DATA_TYPE.integer, isRequired: IntegerField.defaultIsRequired});
-        this._valueRange = [IntegerField.defaultMin, IntegerField.defaultMax];
-        this._setErrorMessageRequiredValue();
-        this._setErrorMessageInvalidType();
-        this._setErrorMessageRangeMin();
-        this._setErrorMessageRangeMax();
-        this._setErrorMessageFailedUserDefinedTest();
+        this.valueRange = [IntegerField.defaultMin, IntegerField.defaultMax];
+        this.setErrorMessageRequiredValue();
+        this.setErrorMessageInvalidType();
+        this.setErrorMessageRangeMin();
+        this.setErrorMessageRangeMax();
+        this.setErrorMessageFailedUserDefinedTest();
     }
 
-    _setErrorMessageRequiredValue(message) {
-        this._errorMessageRequiredValue = message !== undefined ? message: `${this._valueIdentifier} is required`;
+    setErrorMessageRequiredValue(message) {
+        this.errorMessageRequiredValue = message !== undefined ? message: `${this.valueIdentifier} is required`;
     }
 
-    _setErrorMessageInvalidType(message) {
-        this._errorMessageInvalidType = message !== undefined ? message : `invalid value, expected a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.integer]}`;
+    setErrorMessageInvalidType(message) {
+        this.errorMessageInvalidType = message !== undefined ? message : `invalid value, expected a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.integer]}`;
     }
 
-    _setErrorMessageRangeMin(message) {
-        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must be at least ${this._valueRange[0]}`;
+    setErrorMessageRangeMin(message) {
+        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must be at least ${this.valueRange[0]}`;
     }
 
-    _setErrorMessageRangeMax(message) {
-        this._errorMessageRangeMax = message !== undefined ? message : `${this._valueIdentifier} must not be greater than ${this._valueRange[1]}`;
+    setErrorMessageRangeMax(message) {
+        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must not be greater than ${this.valueRange[1]}`;
     }
 
-    _setErrorMessageFailedUserDefinedTest(message) {
-        this._errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
+    setErrorMessageFailedUserDefinedTest(message) {
+        this.errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
     }
 
-    _assertUserDefinedTests(value) {
+    assertUserDefinedTests(value) {
         for(const [test, message] of this.userDefinedTests.sync) {
             if(!test(value)) {
-                this._setErrorMessageFailedUserDefinedTest(message);
+                this.setErrorMessageFailedUserDefinedTest(message);
                 return false;
             }
         }
@@ -55,25 +55,25 @@ export class IntegerField extends ValidatorField {
     }
 
     invalidTypeMessage(message = undefined) {
-        this._setErrorMessageInvalidType(message);
+        this.setErrorMessageInvalidType(message);
         return this;
     }
 
     required(message = undefined) {
-        this._isRequired = true;
-        this._setErrorMessageRequiredValue(message);
+        this.isRequired = true;
+        this.setErrorMessageRequiredValue(message);
         return this;
     }
 
     min(rangeMin, message = undefined) {
-        this._valueRange[0] = rangeMin;
-        this._setErrorMessageRangeMin(message);
+        this.valueRange[0] = rangeMin;
+        this.setErrorMessageRangeMin(message);
         return this;
     }
 
     max(rangeMax, message = undefined) {
-        this._valueRange[1] = rangeMax;
-        this._setErrorMessageRangeMax(message);
+        this.valueRange[1] = rangeMax;
+        this.setErrorMessageRangeMax(message);
         return this;
     }
 
@@ -88,22 +88,22 @@ export class IntegerField extends ValidatorField {
 
     validate(value) {
         if(isNullish(value)){
-            if(this._isRequired) {
-                return this._errorMessageRequiredValue;
+            if(this.isRequired) {
+                return this.errorMessageRequiredValue;
             }
             return null;
         }
         if(!validators[DATA_TYPE.integer](value)){
-            return this._errorMessageInvalidType;
+            return this.errorMessageInvalidType;
         }
-        if(value < this._valueRange[0]) {
-            return this._errorMessageRangeMin;
+        if(value < this.valueRange[0]) {
+            return this.errorMessageRangeMin;
         }
-        if(value > this._valueRange[1]) {
-            return this._errorMessageRangeMax;
+        if(value > this.valueRange[1]) {
+            return this.errorMessageRangeMax;
         }
-        if(!this._assertUserDefinedTests(value)) {
-            return this._errorMessageFailedUserDefinedTest;
+        if(!this.assertUserDefinedTests(value)) {
+            return this.errorMessageFailedUserDefinedTest;
         }
         return null;
     }

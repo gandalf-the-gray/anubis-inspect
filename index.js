@@ -13,9 +13,14 @@ import { setObjectValue, getObjectValue, validators } from "./utils.js";
 // Base validator class
 class BaseValidator {
     constructor() {
-        this._rules = {};
-        this._asyncTestQueue = [];
-        this._cachedAsyncTests = false;
+        this.rules = {};
+        this.asyncTestQueue = [];
+        this.cachedAsyncTests = false;
+    }
+
+    init(rules) {
+        // this.rules in the _init call refers to rules of the immediate super class
+        this.rules = this._init(this.rules, rules);
     }
 
     _init(superRules, newRules) {
@@ -30,9 +35,8 @@ class BaseValidator {
         return rules;
     }
 
-    init(rules) {
-        // this._rules in the _init call refers to rules of the immediate super class
-        this._rules = this._init(this._rules, rules);
+    validate(body) {
+        return this._validate(this.rules, body);
     }
 
     _validate(rules, body) {
@@ -66,7 +70,7 @@ class BaseValidator {
                 this.cacheAsyncTests(rules[ruleField], address);
                 continue;
             }
-            this._asyncTestQueue = this._asyncTestQueue.concat(
+            this.asyncTestQueue = this.asyncTestQueue.concat(
                 rules[ruleField].userDefinedTests.async.map(([testFn, message]) => {
                     return [address, testFn, message ? message : DEFAULT_INVALID_VALUE_MESSAGE];
                 })
@@ -74,19 +78,14 @@ class BaseValidator {
         }
     }
 
-    validate(body) {
-        return this._validate(this._rules, body);
-    }
-
     async asyncValidate(body, res) {
         let errors = this.validate(body);
-
         if(!this.cachedAsyncTests) {
-            this.cacheAsyncTests(this._rules);
+            this.cacheAsyncTests(this.rules);
             this.cachedAsyncTests = true;
         }
-        if(this._asyncTestQueue.length > 0) {
-            const tasks = this._asyncTestQueue.filter(
+        if(this.asyncTestQueue.length > 0) {
+            const tasks = this.asyncTestQueue.filter(
                 (task) => getObjectValue(errors, task[0]) === undefined
             );
             const results = await Promise.all(
@@ -95,7 +94,7 @@ class BaseValidator {
             for(let i = 0; i < results.length; i++) {
                 if(!results[i]) {
                     errors = errors ? errors : {};
-                    setObjectValue(errors, this._asyncTestQueue[i][0], this._asyncTestQueue[i][2])
+                    setObjectValue(errors, this.asyncTestQueue[i][0], this.asyncTestQueue[i][2])
                 }
             }
         }

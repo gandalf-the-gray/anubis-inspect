@@ -17,44 +17,44 @@ export class StringField extends ValidatorField {
 
     constructor(valueIdentifier){
         super({valueIdentifier, type: DATA_TYPE.string, isRequired: StringField.defaultIsRequired});
-        this._lengthRange = [StringField.defaultMinLength, StringField.defaultMaxLength];
-        this._pattern = StringField.defaultPattern;
-        this._setErrorMessageValueRequired();
-        this._setErrorMessageInvalidType();
-        this._setErrorMessageRangeMin();
-        this._setErrorMessageRangeMax();
-        this._setErrorMessageInvalidPattern();
-        this._setErrorMessageFailedUserDefinedTest();
+        this.lengthRange = [StringField.defaultMinLength, StringField.defaultMaxLength];
+        this.pattern = StringField.defaultPattern;
+        this.setErrorMessageValueRequired();
+        this.setErrorMessageInvalidType();
+        this.setErrorMessageRangeMin();
+        this.setErrorMessageRangeMax();
+        this.setErrorMessageInvalidPattern();
+        this.setErrorMessageFailedUserDefinedTest();
     }
 
-    _setErrorMessageValueRequired(message) {
-        this._errorMessageRequiredValue = message !== undefined ? message : `${this._valueIdentifier} is required`;
+    setErrorMessageValueRequired(message) {
+        this.errorMessageRequiredValue = message !== undefined ? message : `${this.valueIdentifier} is required`;
     }
 
-    _setErrorMessageInvalidType(message) {
-        this._errorMessageInvalidType = message !== undefined ? message : `invalid value, expected ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.string]}`;
+    setErrorMessageInvalidType(message) {
+        this.errorMessageInvalidType = message !== undefined ? message : `invalid value, expected ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.string]}`;
     }
 
-    _setErrorMessageRangeMin(message) {
-        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must have at least ${this._lengthRange[0]} characters`;
+    setErrorMessageRangeMin(message) {
+        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must have at least ${this.lengthRange[0]} characters`;
     }
 
-    _setErrorMessageRangeMax(message) {
-        this._errorMessageRangeMax = message !== undefined ? message : `${this._valueIdentifier} must not have more than ${this._lengthRange[1]} characters`;
+    setErrorMessageRangeMax(message) {
+        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must not have more than ${this.lengthRange[1]} characters`;
     }
 
-    _setErrorMessageInvalidPattern(message) {
-        this._errorMessageInvalidPattern = message !== undefined ? message : `invalid ${this._valueIdentifier}`;
+    setErrorMessageInvalidPattern(message) {
+        this.errorMessageInvalidPattern = message !== undefined ? message : `invalid ${this.valueIdentifier}`;
     }
 
-    _setErrorMessageFailedUserDefinedTest(message) {
-        this._errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
+    setErrorMessageFailedUserDefinedTest(message) {
+        this.errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
     }
 
-    _assertUserDefinedTests(value) {
+    assertUserDefinedTests(value) {
         for(const [test, message] of this.userDefinedTests.sync) {
             if(!test(value)) {
-                this._setErrorMessageFailedUserDefinedTest(message);
+                this.setErrorMessageFailedUserDefinedTest(message);
                 return false;
             }
         }
@@ -62,31 +62,31 @@ export class StringField extends ValidatorField {
     }
 
     invalidTypeMessage(message = undefined) {
-        this._setErrorMessageInvalidType(message);
+        this.setErrorMessageInvalidType(message);
         return this;
     }
 
     required(message = undefined) {
-        this._isRequired = true;
-        this._setErrorMessageValueRequired(message);
+        this.isRequired = true;
+        this.setErrorMessageValueRequired(message);
         return this;
     }
 
     min(rangeMin, message = undefined) {
-        this._lengthRange[0] = rangeMin;
-        this._setErrorMessageRangeMin(message);
+        this.lengthRange[0] = rangeMin;
+        this.setErrorMessageRangeMin(message);
         return this;
     }
 
     max(rangeMax, message = undefined) {
-        this._lengthRange[1] = rangeMax;
-        this._setErrorMessageRangeMax(message);
+        this.lengthRange[1] = rangeMax;
+        this.setErrorMessageRangeMax(message);
         return this;
     }
 
     match(pattern, message = undefined) {
-        this._pattern = pattern;
-        this._setErrorMessageInvalidPattern(message);
+        this.pattern = pattern;
+        this.setErrorMessageInvalidPattern(message);
         return this;
     }
 
@@ -101,25 +101,25 @@ export class StringField extends ValidatorField {
 
     validate(value) {
         if(isNullish(value)) {
-            if(this._isRequired) {
-                return this._errorMessageRequiredValue;
+            if(this.isRequired) {
+                return this.errorMessageRequiredValue;
             }
             return null;
         }
         if(!validators[DATA_TYPE.string](value)) {
-            return this._errorMessageInvalidType;
+            return this.errorMessageInvalidType;
         }
-        if(value.length < this._lengthRange[0]) {
-            return this._errorMessageRangeMin;
+        if(value.length < this.lengthRange[0]) {
+            return this.errorMessageRangeMin;
         }
-        if(value.length > this._lengthRange[1]) {
-            return this._errorMessageRangeMax;
+        if(value.length > this.lengthRange[1]) {
+            return this.errorMessageRangeMax;
         }
-        if(this._pattern && !this._pattern.test(value)) {
-            return this._errorMessageInvalidPattern;
+        if(this.pattern && !this.pattern.test(value)) {
+            return this.errorMessageInvalidPattern;
         }
-        if(!this._assertUserDefinedTests(value)) {
-            return this._errorMessageFailedUserDefinedTest;
+        if(!this.assertUserDefinedTests(value)) {
+            return this.errorMessageFailedUserDefinedTest;
         }
         return null;
     }

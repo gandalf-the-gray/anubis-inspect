@@ -13,10 +13,6 @@ export class ArrayField extends ValidatorField {
     static defaultMaxLength = Infinity;
     static defaultContainedTypeValidator = null;
 
-    static _getInvalidTypeMessage(valueIdentifier, type) {
-        return `${valueIdentifier} must only have ${type} values`;
-    }
-
     static string(valueIdentifier, message = undefined) {
         return new ArrayField(valueIdentifier).values(new StringField(), message);
     }
@@ -47,69 +43,69 @@ export class ArrayField extends ValidatorField {
 
     constructor(valueIdentifier) {
         super({valueIdentifier, type: DATA_TYPE.array, isRequired: ArrayField.defaultIsRequired});
-        this._lengthRange = [ArrayField.defaultMinLength, ArrayField.defaultMaxLength];
-        this._containedValueValidator = ArrayField.defaultContainedTypeValidator;
-        this._nested = true;
-        this._setErrorMessageInvalidType();
-        this._setErrorMessageRangeMin();
-        this._setErrorMessageRangeMax();
-        this._setErrorMessageNested();
-        this._setErrorMessageInvalidContainedValue();
-        this._setErrorMessageFailedUserDefinedTest();
+        this.lengthRange = [ArrayField.defaultMinLength, ArrayField.defaultMaxLength];
+        this.containedValueValidator = ArrayField.defaultContainedTypeValidator;
+        this.nested = true;
+        this.setErrorMessageInvalidType();
+        this.setErrorMessageRangeMin();
+        this.setErrorMessageRangeMax();
+        this.setErrorMessageNested();
+        this.setErrorMessageInvalidContainedValue();
+        this.setErrorMessageFailedUserDefinedTest();
     }
 
-    _setErrorMessageRequiredValue(message) {
-        this._errorMessageRequiredValue = message !== undefined ? message : `${this._valueIdentifier} are required`;
+    setErrorMessageRequiredValue(message) {
+        this.errorMessageRequiredValue = message !== undefined ? message : `${this.valueIdentifier} are required`;
     }
 
-    _setErrorMessageInvalidType(message) {
-        this._errorMessageInvalidType = message !== undefined ? message : `invalid value, expected a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.array]}`;
+    setErrorMessageInvalidType(message) {
+        this.errorMessageInvalidType = message !== undefined ? message : `invalid value, expected a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.array]}`;
     }
 
-    _setErrorMessageRangeMin(message) {
-        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must have at least ${this._lengthRange[0]} values`;
+    setErrorMessageRangeMin(message) {
+        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must have at least ${this.lengthRange[0]} values`;
     }
 
-    _setErrorMessageRangeMax(message) {
-        this._errorMessageRangeMax = message !== undefined ? message : `${this._valueIdentifier} must not have more than ${this._lengthRange[1]} values`;
+    setErrorMessageRangeMax(message) {
+        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must not have more than ${this.lengthRange[1]} values`;
     }
 
-    _setErrorMessageNested(message) {
-        this._errorMessageNested = message !== undefined ? message : `${this._valueIdentifier} must not contain a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.array]}`;
+    setErrorMessageNested(message) {
+        this.errorMessageNested = message !== undefined ? message : `${this.valueIdentifier} must not contain a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.array]}`;
     }
 
-    _setErrorMessageInvalidContainedValue(message) {
+    setErrorMessageInvalidContainedValue(message) {
         if(message === undefined) {
-            if(this._containedValueValidator !== null) {
-                message = `${this._valueIdentifier} must only have ${DATA_TYPE_TO_COMMON_NAME[this._containedValueValidator.type]} values`;
+            if(this.containedValueValidator !== null) {
+                message = `${this.valueIdentifier} must only have ${DATA_TYPE_TO_COMMON_NAME[this.containedValueValidator.type]} values`;
             }
         }
-        this._errorMessageInvalidContainedValue = message;
+        this.errorMessageInvalidContainedValue = message;
     }
 
-    _setErrorMessageFailedUserDefinedTest(message) {
-        this._errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
+    setErrorMessageFailedUserDefinedTest(message) {
+        this.errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
     }
 
-    _assertContainedValue(list) {
+    assertContainedValue(list) {
         for(const item of list) {
-            if(this._containedValueValidator !== null) {
-                const errorMessage = this._containedValueValidator.validate(item);
+            if(this.containedValueValidator !== null) {
+                const errorMessage = this.containedValueValidator.validate(item);
                 if(errorMessage !== null) {
-                    return this._errorMessageInvalidContainedValue;
+                    return this.errorMessageInvalidContainedValue;
                 }
             }
-            if(!this._nested && validators[DATA_TYPE.array](item)) {
-                return this._errorMessageNested;
+            if(!this.nested && validators[DATA_TYPE.array](item)) {
+                return this.errorMessageNested;
             }
         }
         return null;
     }
 
-    _assertUserDefinedTests(value) {
+    assertUserDefinedTests(value) {
         for(const [test, message] of this.userDefinedTests.sync) {
             if(!test(value)) {
-                this._setErrorMessageFailedUserDefinedTest(message);
+                this.setErrorMessageFailedUserDefinedTest(message);
                 return false;
             }
         }
@@ -117,37 +113,37 @@ export class ArrayField extends ValidatorField {
     }
 
     invalidTypeMessage(message = undefined) {
-        this._setErrorMessageInvalidType(message);
+        this.setErrorMessageInvalidType(message);
         return this;
     }
 
     required(message = undefined) {
-        this._isRequired = true;
-        this._setErrorMessageRequiredValue(message);
+        this.isRequired = true;
+        this.setErrorMessageRequiredValue(message);
         return this;
     }
 
     min(rangeMin, message = undefined) {
-        this._lengthRange[0] = rangeMin;
-        this._setErrorMessageRangeMin(message);
+        this.lengthRange[0] = rangeMin;
+        this.setErrorMessageRangeMin(message);
         return this;
     }
 
     max(rangeMax, message = undefined) {
-        this._lengthRange[1] = rangeMax;
-        this._setErrorMessageRangeMax(message);
+        this.lengthRange[1] = rangeMax;
+        this.setErrorMessageRangeMax(message);
         return this;
     }
 
     values(type, message = undefined) {
-        this._containedValueValidator = type;
-        this._setErrorMessageInvalidContainedValue(message);
+        this.containedValueValidator = type;
+        this.setErrorMessageInvalidContainedValue(message);
         return this;
     }
 
     notNested(message = undefined) {
-        this._nested = false;
-        this._setErrorMessageNested(message);
+        this.nested = false;
+        this.setErrorMessageNested(message);
         return this;
     }
 
@@ -162,28 +158,28 @@ export class ArrayField extends ValidatorField {
 
     validate(value) {
         if(isNullish(value)) {
-            if(this._isRequired){
-                return this._errorMessageRequiredValue;
+            if(this.isRequired){
+                return this.errorMessageRequiredValue;
             }
             return null;
         }
         if(!validators[DATA_TYPE.array](value)) {
-            return this._errorMessageInvalidType;
+            return this.errorMessageInvalidType;
         }
-        if(value.length < this._lengthRange[0]) {
-            return this._errorMessageRangeMin;
+        if(value.length < this.lengthRange[0]) {
+            return this.errorMessageRangeMin;
         }
-        if(value.length > this._lengthRange[1]) {
-            return this._errorMessageRangeMax;
+        if(value.length > this.lengthRange[1]) {
+            return this.errorMessageRangeMax;
         }
-        if(this._containedValueValidator !== null || !this._nested) {
-            const message = this._assertContainedValue(value);
+        if(this.containedValueValidator !== null || !this.nested) {
+            const message = this.assertContainedValue(value);
             if(message !== null) {
                 return message;
             }
         }
-        if(!this._assertUserDefinedTests(value)) {
-            return this._errorMessageFailedUserDefinedTest;
+        if(!this.assertUserDefinedTests(value)) {
+            return this.errorMessageFailedUserDefinedTest;
         }
         return null;
     }

@@ -14,44 +14,44 @@ export class DateField extends ValidatorField {
 
     constructor(valueIdentifier) {
         super({valueIdentifier, type: DATA_TYPE.date, isRequired: DateField.defaultIsRequired});
-        this._dateRange = [null, null];
-        this._setErrorMessageRequiredValue();
-        this._setErrorMessageInvalidType();
-        this._setErrorMessageRangeMin();
-        this._setErrorMessageRangeMax();
-        this._setErrorMessageFailedUserDefinedTest();
+        this.dateRange = [null, null];
+        this.setErrorMessageRequiredValue();
+        this.setErrorMessageInvalidType();
+        this.setErrorMessageRangeMin();
+        this.setErrorMessageRangeMax();
+        this.setErrorMessageFailedUserDefinedTest();
     }
 
-    _setErrorMessageRequiredValue(message) {
-        this._errorMessageRequiredValue = message !== undefined ? message : `${this._valueIdentifier} is required`;
+    setErrorMessageRequiredValue(message) {
+        this.errorMessageRequiredValue = message !== undefined ? message : `${this.valueIdentifier} is required`;
     }
 
-    _setErrorMessageInvalidType(message) {
-        this._errorMessageInvalidType = message !== undefined ? message : `invalid value, expected a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.date]}`;
+    setErrorMessageInvalidType(message) {
+        this.errorMessageInvalidType = message !== undefined ? message : `invalid value, expected a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.date]}`;
     }
 
-    _setErrorMessageRangeMax(message) {
-        if(this._dateRange[0] === null) {
+    setErrorMessageRangeMin(message) {
+        if(this.dateRange[0] === null) {
             return;
         }
-        this._errorMessageRangeMin = message !== undefined ? message : `${this._valueIdentifier} must not be a date before ${formateDate(this._dateRange[0])}`;
+        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must be a date after ${formateDate(this.dateRange[0])}`;
     }
 
-    _setErrorMessageRangeMin(message) {
-        if(this._dateRange[0] === null) {
+    setErrorMessageRangeMax(message) {
+        if(this.dateRange[0] === null) {
             return;
         }
-        this._errorMessageRangeMax = message !== undefined ? message : `${this._valueIdentifier} must not be a date after ${formateDate(this._dateRange[1])}`;
+        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must be a date before ${formateDate(this.dateRange[1])}`;
     }
 
-    _setErrorMessageFailedUserDefinedTest(message) {
-        this._errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
+    setErrorMessageFailedUserDefinedTest(message) {
+        this.errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
     }
 
-    _assertUserDefinedTests(value) {
+    assertUserDefinedTests(value) {
         for(const [test, message] of this.userDefinedTests.sync) {
             if(!test(value)) {
-                this._setErrorMessageFailedUserDefinedTest(message);
+                this.setErrorMessageFailedUserDefinedTest(message);
                 return false;
             }
         }
@@ -59,25 +59,25 @@ export class DateField extends ValidatorField {
     }
 
     invalidTypeMessage(message = undefined) {
-        this._setErrorMessageInvalidType(message);
+        this.setErrorMessageInvalidType(message);
         return this;
     }
 
     required(message = undefined) {
-        this._isRequired = true;
-        this._setErrorMessageRequiredValue(message);
+        this.isRequired = true;
+        this.setErrorMessageRequiredValue(message);
         return this;
     }
 
     min(rangeMin, message = undefined) {
-        this._dateRange[0] = [new Date(rangeMin)];
-        this._setErrorMessageRangeMin(message);
+        this.dateRange[0] = new Date(rangeMin);
+        this.setErrorMessageRangeMin(message);
         return this;
     }
 
     max(rangeMax, message = undefined) {
-        this._dateRange[1] = [new Date(rangeMax)];
-        this._setErrorMessageRangeMax(message);
+        this.dateRange[1] = new Date(rangeMax);
+        this.setErrorMessageRangeMax(message);
         return this;
     }
 
@@ -92,23 +92,23 @@ export class DateField extends ValidatorField {
 
     validate(value) {
         if(isNullish(value)){
-            if(this._isRequired) {
-                return this._errorMessageRequiredValue;
+            if(this.isRequired) {
+                return this.errorMessageRequiredValue;
             }
             return null;
         }
         if(!validators[DATA_TYPE.date](value)){
-            return this._errorMessageInvalidType;
+            return this.errorMessageInvalidType;
         }
         value = new Date(value);
-        if(this._dateRange[0] !== null && value < this._dateRange[0]) {
-            return this._errorMessageRangeMin;
+        if(this.dateRange[0] !== null && value < this.dateRange[0]) {
+            return this.errorMessageRangeMin;
         }
-        if(this._dateRange[1] !== null && value > this._dateRange[1]) {
-            return this._errorMessageRangeMax;
+        if(this.dateRange[1] !== null && value > this.dateRange[1]) {
+            return this.errorMessageRangeMax;
         }
-        if(!this._assertUserDefinedTests(value)) {
-            return this._errorMessageFailedUserDefinedTest;
+        if(!this.assertUserDefinedTests(value)) {
+            return this.errorMessageFailedUserDefinedTest;
         }
         return null;
     }
