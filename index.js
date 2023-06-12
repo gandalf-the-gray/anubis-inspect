@@ -38,11 +38,11 @@ class BaseValidator {
     }
 
     validate(body) {
-        let errors = this._validate(this.rules, body);
+        let errors = this._validate(this.rules, body);            
         for(let i = 0; i < this.dependantTestList.sync.length; i++) {
             let [fieldAddress, testFn, dependencies, message] = this.dependantTestList.sync[i];
             if(getObjectValue(errors, fieldAddress) === undefined) {
-                if(dependencies.every((dependency) => getObjectValue(errors, dependency) === undefined)) {
+                if(dependencies.every((dep) => getObjectValue(errors, dep) === undefined)) {
                     let isValid = testFn(getObjectValue(body, fieldAddress), dependencies.map((dep) => getObjectValue(body, dep)));
                     if(Array.isArray(isValid)) {
                         message = isValid[1];
@@ -119,41 +119,53 @@ class BaseValidator {
 
     async asyncValidate(body, res) {
         let errors = this.validate(body);
-        if(this.asyncTestList.length > 0) {
-            // Note: every element in asyncTestQueue will be [address, testFn, message]
-            const tasks = this.asyncTestList.filter(
-                (task) => getObjectValue(errors, task[0]) === undefined
-            );
+        // Note: every element in asyncTestQueue will be [address, testFn, message]
+        const validAsyncTests = this.asyncTestList.filter(
+            (task) => getObjectValue(errors, task[0]) === undefined
+        );
+        if(validAsyncTests.length > 0) {
             const results = await Promise.all(
-                tasks.map((task) => task[1](getObjectValue(body, task[0]), res))
+                validAsyncTests.map((task) => task[1](getObjectValue(body, task[0]), res))
             );
             for(let i = 0; i < results.length; i++) {
                 let isValid = results[i];
-                let message = this.asyncTestList[i][2];
+                let message = validAsyncTests[i][2];
                 if(Array.isArray(isValid)) {
                     message = isValid[1];
                     isValid = isValid[0];
                 }
                 if(!isValid) {
                     errors = errors ? errors : {};
-                    setObjectValue(errors, this.asyncTestList[i][0], message ? message : DEFAULT_INVALID_VALUE_MESSAGE);
+                    setObjectValue(errors, validAsyncTests[i][0], message ? message : DEFAULT_INVALID_VALUE_MESSAGE);
                 }
             }
         }
 
-        for(let i = 0; i < this.dependantTestList.async.length; i++) {
-            let [fieldAddress, testFn, dependencies, message] = this.dependantTestList.async[i];
-            if(getObjectValue(errors, fieldAddress) === undefined) {
-                if(dependencies.every((dependency) => getObjectValue(errors, dependency) === undefined)) {
-                    let isValid = await testFn(getObjectValue(body, fieldAddress), dependencies.map((dep) => getObjectValue(body, dep)));
-                    if(Array.isArray(isValid)) {
-                        message = isValid[1];
-                        isValid = isValid[0];
-                    }
-                    if(!isValid) {
-                        errors = errors ? errors : {};
-                        setObjectValue(errors, fieldAddress, message ? message : DEFAULT_INVALID_VALUE_MESSAGE);
-                    }
+        // Note: every dependantTest will be [address, testFn, dependencies, message]
+        const validAsyncDependantTests = this.dependantTestList.async.filter((item) => {
+            const [fieldAddress, _, dependencies] = item;
+            const isFieldValid = getObjectValue(errors, fieldAddress) === undefined;
+            const areDependenciesValid = dependencies.every((dep) => getObjectValue(errors, dep) === undefined);
+            return isFieldValid && areDependenciesValid;
+        })
+
+        if(validAsyncDependantTests.length > 0) {
+            const results = await Promimse.all(
+                validAsyncDependantTests.map(([fieldAddress, testFn, dependencies]) => {
+                    const dependencyValues = dependencies.map((dep) => getObjectValue(body, dep));
+                    return testFn(getObjectValue(body, fieldAddress), dependencyValues);
+                })
+            )
+            for(let i = 0; i < results.length; i++) {
+                let isValid = results[i];
+                let message = validAsyncDependantTests[i][3];
+                if(Array.isArray(isValid)) {
+                    message = isValid[1];
+                    isValid = isValid[0];
+                }
+                if(!isValid) {
+                    const address = validAsyncDependantTests[i][0];
+                    setObjectValue(errors, address, message ? message : DEFAULT_INVALID_VALUE_MESSAGE);
                 }
             }
         }
