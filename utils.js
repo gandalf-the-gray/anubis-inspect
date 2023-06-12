@@ -46,6 +46,7 @@ export function setObjectValue(object, address, value) {
     for(let i = 0; i < keys.length; i++) {
         if(i === keys.length - 1) {
             object[keys[i]] = value;
+            return;
         }
         if(object[keys[i]] === undefined) {
             object[keys[i]] = {};
@@ -53,7 +54,8 @@ export function setObjectValue(object, address, value) {
         object = object[keys[i]];
     }
 }
-
+const errors = {};
+setObjectValue(errors, 'array', undefined);
 export function getObjectValue(object, address) {
     if(!object) {
         return undefined;

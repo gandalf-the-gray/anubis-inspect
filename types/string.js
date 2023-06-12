@@ -53,7 +53,12 @@ export class StringField extends ValidatorField {
 
     assertUserDefinedTests(value) {
         for(const [test, message] of this.userDefinedTests.sync) {
-            if(!test(value)) {
+            let isValid = test(value);
+            if(Array.isArray(isValid)) {
+                message = isValid[1];
+                isValid = isValid[0];
+            }
+            if(!isValid) {
                 this.setErrorMessageFailedUserDefinedTest(message);
                 return false;
             }

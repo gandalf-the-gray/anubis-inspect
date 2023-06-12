@@ -85,6 +85,7 @@ class BaseValidator {
             this.cachedAsyncTests = true;
         }
         if(this.asyncTestQueue.length > 0) {
+            // Note: every element in asyncTestQueue will be [address, testFn, message]
             const tasks = this.asyncTestQueue.filter(
                 (task) => getObjectValue(errors, task[0]) === undefined
             );
@@ -92,9 +93,15 @@ class BaseValidator {
                 tasks.map((task) => task[1](getObjectValue(body, task[0]), res))
             );
             for(let i = 0; i < results.length; i++) {
-                if(!results[i]) {
+                let isValid = results[i];
+                let message = this.asyncTestQueue[i][2];
+                if(Array.isArray(isValid)) {
+                    message = isValid[1];
+                    isValid = isValid[0];
+                }
+                if(!isValid) {
                     errors = errors ? errors : {};
-                    setObjectValue(errors, this.asyncTestQueue[i][0], this.asyncTestQueue[i][2])
+                    setObjectValue(errors, this.asyncTestQueue[i][0], message ? message : DEFAULT_INVALID_VALUE_MESSAGE);
                 }
             }
         }
