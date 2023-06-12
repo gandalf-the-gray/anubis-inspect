@@ -165,6 +165,7 @@ class BaseValidator {
                 }
                 if(!isValid) {
                     const address = validAsyncDependantTests[i][0];
+                    errors = errors ? errors : {};
                     setObjectValue(errors, address, message ? message : DEFAULT_INVALID_VALUE_MESSAGE);
                 }
             }
