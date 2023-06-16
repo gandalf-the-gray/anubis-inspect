@@ -1,17 +1,18 @@
 import { DATA_TYPE, DEFAULT_INVALID_VALUE_MESSAGE } from "./constants.js";
-import { ArrayField } from "./types/array.js";
-import { DateField } from "./types/date.js";
-import { FloatField } from "./types/float.js";
-import { IntegerField } from "./types/integer.js";
-import { NullField } from "./types/null.js";
-import { NumberField } from "./types/number.js";
-import { ObjectField } from "./types/object.js";
-import { StringField } from "./types/string.js";
-import { UndefinedField } from "./types/undefined.js";
+export { ArrayField } from "./types/array.js";
+export { BooleanField } from "./types/boolean.js";
+export { DateField } from "./types/date.js";
+export { FloatField } from "./types/float.js";
+export { IntegerField } from "./types/integer.js";
+export { NullField } from "./types/null.js";
+export { NumberField } from "./types/number.js";
+export { ObjectField } from "./types/object.js";
+export { StringField } from "./types/string.js";
+export { UndefinedField } from "./types/undefined.js";
 import { setObjectValue, getObjectValue, validators } from "./utils.js";
 
 // Base validator class
-class BaseValidator {
+export class BaseValidator {
     constructor() {
         this.rules = {};
         this.asyncTestList = [];
@@ -189,5 +190,3 @@ class BaseValidator {
         }
     }
 }
-
-export { ArrayField, BaseValidator, DateField, FloatField, IntegerField, NullField, NumberField, ObjectField, StringField, UndefinedField };
