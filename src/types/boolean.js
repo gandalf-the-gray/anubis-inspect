@@ -1,11 +1,11 @@
 import { DATA_TYPE, DATA_TYPE_TO_COMMON_NAME } from "../constants.js";
-import { ValidatorField, validators, isNullish } from "../utils.js";
+import { BaseField, validators, isNullish } from "../utils.js";
 
-export class BooleanField extends ValidatorField {
-    static defaultIsRequired = false;
+export class BooleanField extends BaseField {
+    static defaultIsRequired = true;
 
-    constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.null, isRequired: BooleanField.defaultIsRequired});
+    constructor(valueIdentifier, isRequired = BooleanField.defaultIsRequired) {
+        super({valueIdentifier, type: DATA_TYPE.null, isRequired});
         this.setErrorMessageInvalidType();
         this.setErrorMessageRequiredValue();
     }
@@ -18,13 +18,12 @@ export class BooleanField extends ValidatorField {
         this.errorMessageInvalidType = message !== undefined ? message : `${this.valueIdentifier} must be ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.boolean]}`;
     }
 
-    required(message) {
-        this.isRequired = true;
+    requiredValueMessage(message) {
         this.setErrorMessageRequiredValue(message);
         return this;
     }
 
-    invalidTypeMessage(message = undefined) {
+    invalidTypeMessage(message) {
         this.setErrorMessageInvalidType(message);
         return this;
     }

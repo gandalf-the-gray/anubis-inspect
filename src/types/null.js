@@ -1,7 +1,7 @@
 import { DATA_TYPE, DATA_TYPE_TO_COMMON_NAME } from "../constants.js";
-import { ValidatorField, validators } from "../utils.js";
+import { BaseField, validators } from "../utils.js";
 
-export class NullField extends ValidatorField {
+export class NullField extends BaseField {
     constructor(valueIdentifier) {
         super({valueIdentifier, type: DATA_TYPE.null});
         this.setErrorMessageInvalidType();
