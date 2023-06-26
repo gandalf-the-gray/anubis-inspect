@@ -85,9 +85,9 @@ app.get("/sign-up", new SignUpValidator().middleware(), (req, res, next) => {
 
 ```
 ## Things to keep in mind
-A type-validator by default only checks for the presence and type of the value, to make the value optional or fit in a certain range, you must call the appropriate method, eg. new StringField('email') only makes sure that the value not null/undefined and is a string, whereas new StringField('email', false) makes the email optional i.e allows either null/undefined or a string and new StringField('email').min(10) makes sure the email is at leats 10 characters long, every such method has a default error message to return if the value isn't as expected but you can pass your own messages too
+A type-validator by default only checks for the presence and type of the value, to make the value optional or fit in a certain range, you must call the appropriate method, eg. new StringField('email') only makes sure that the value is not null/undefined and is a string, whereas new StringField('email', false) makes the email optional i.e allows either null/undefined or a string and new StringField('email').min(10) makes sure the email is at leats 10 characters long, every such method has a default error message to return if the value isn't as expected but you can pass your own messages too
 
-The 'test' method allows you to add your own custom tests in form of functions, take the value, run tests (async tests too) and return an array in [isValid, errorMessage] form, the first item in the returned must be a boolean indicating if the value passes the test and the second is the error message to be used in case the value failed the test
+The 'test' method allows you to add your own custom tests in form of functions, take the value, run tests (async tests too) and return an array in [isValid, errorMessage] format, the first item in the returned must be a boolean indicating if the value passes the test and the second is the error-message to be used in case the value failed the test
 
 ### The test function has some flavors
 1) vanilla - a function that takes the value of the field as the only parameter, example below
@@ -142,8 +142,8 @@ const rules = {
 **Note: the async test functions will be run concurrently using the Promise API, so feel free to use multiple async functions**
 
 ## Types and their corresponding classes
-
-### string - new StringField(fieldName)
+**Note: All values are required by default**
+### string - new StringField(fieldName, [isRequired])
 - ### static methods
 - alphanum(fieldName, [message]) -> returns a StringField instance that checks if the given value is strictly alphanumeric
 - email(fieldName, [message]) -> returns a StringField instance that checks if the given value is an email
@@ -157,7 +157,7 @@ const rules = {
 - test((value) => {}) -> passes the value through this function to check it's validity
 
 
-### number - new NumberField(fieldName)
+### number - new NumberField(fieldName, [isRequired])
 - ### static methods
 - lt(fieldName, maxValue, [message]) -> returns a NumberField instance that checks if the given value is less than the passed maxValue
 - gt(fieldName, minValue, [message]) -> returns a NumberField instance that checks if the given value is greater than the passed minValue
@@ -170,7 +170,7 @@ const rules = {
 - test((value) => {}, [message]) -> passes the value through this function to check it's validity
 
 
-### integer - new IntegerField(fieldName)
+### integer - new IntegerField(fieldName, [isRequired])
 - ### static methods
 - lt(fieldName, maxValue, [message]) -> returns an IntegerField instance that checks if the given value is less than the passed maxValue
 - gt(fieldName, minValue, [message]) -> returns an IntegerField instance that checks if the given value is greater than the passed minValue
@@ -183,7 +183,7 @@ const rules = {
 - test((value) => {}, [message]) -> passes the value through this function to check it's validity
 
 
-### float - new FloatField(fieldName)
+### float - new FloatField(fieldName, [isRequired])
 - ### static methods
 - lt(fieldName, maxValue, [message]) -> returns an FloatField instance that checks if the given value is less than the passed maxValue
 - gt(fieldName, minValue, [message]) -> returns an FloatField instance that checks if the given value is greater than the passed minValue
@@ -196,7 +196,7 @@ const rules = {
 - test((value) => {}, [message]) -> passes the value through this function to check it's validity
 
 
-### date - new DateField(fieldName)
+### date - new DateField(fieldName, [isRequired])
 - ### static methods
 - before(fieldName, maxDate, [message]) -> returns an DateField instance that checks if the given value is a date before the passed maxDate
 - gt(fieldName, minDate, [message]) -> returns an DateField instance that checks if the given value is a date after the passed minDate
@@ -209,7 +209,7 @@ const rules = {
 - test((value) => {}, [message]) -> passes the value through this function to check it's validity
 
 
-### array - new ArrayField(fieldName)
+### array - new ArrayField(fieldName, [isRequired])
 - ### static methods
 - string(fieldName, [message]) -> returns an ArrayField instance that checks if the given array contains only string values
 - number(fieldName, [message]) -> returns an ArrayField instance that checks if the given array contains only number values
@@ -229,7 +229,7 @@ const rules = {
 - test((value) => {}, [message]) -> passes the value through this function to check it's validity
 
 
-### object- new ObjectField(fieldName)
+### object- new ObjectField(fieldName, [isRequired])
 
 - ### instance methods
 - requiredValueMessage(message) -> error message to return if the value is not provided
