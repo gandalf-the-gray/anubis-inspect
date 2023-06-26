@@ -17,71 +17,123 @@ Use the package manager [npm](https://www.npmjs.com/) to install anubis-inspect.
 npm install anubis-inspect
 ```
 
-## How it works
-To validate an object, you must create an object validator, an object validator is an instance of class that defines the keys and the kind of values the object being tested must have, every validator class must either extend the BaseValidator class or another validator class, validator classes can inherit validation logic from other validator classes.
-
-To test an object against the rules of a validator, you must instantiate the valudator class, and use the validate method of the validator-instance, and pass the object to the validate method as an argument, if the object is valid you'll get an empty object otherwise an object with the error messages assigned to the respective keys.
+## In a nutshell
+Create an object and specify the fields and the corresponding rules in it, use the built-in classes
+to specify the rules for fields, and then, create a class for your object validator which extends BaseValidator, in the constructor, call the super.init method with the rules object as the only parameter
 
 ## Usage
 
 ```javascript
-import express from 'express';
 import { BaseValidator, StringField } from 'anubis-inspect';
 
-// validator for login form
 const loginRules = {
-  username: StringField.alphanum('username').required().min(8),
-  password: StringField.alphanum('password').required().min(6)
-};
+    username: new StringField("Username").max(20),
+    password: new StringField("Password")
+}
 
 class LoginValidator extends BaseValidator {
     constructor() {
-      super();
-      super.init(loginRules);
+        super();
+        super.init(loginRules);
     }
 }
 
-// validator for sign-up form
 const signUpRules = {
-  email: StringField.email('email').required()
-};
-
-class SignUpValidator extends LoginValidator {
-  constructor() {
-    super();
-    super.init(signUpRules);
-  }
+    name: {
+        first: new StringField("First name"),
+        last: new StringField("Last name", false)
+    },
+    email: new StringField("email")
+        .test(async(email) => {
+            // simulating an API call
+            const isValid = await new Promise((resolve) => {
+                setTimeout(resolve, 1000, true);
+            })
+            // If email is valid nothing happens
+            // if it is invalid, the second element in the array is used as error message
+            return [isValid, "Invalid email"];
+        })
 }
 
-// validator instances
+class SignUpValidator extends LoginValidator {
+    constructor() {
+        super();
+        super.init(signUpRules);
+    }
+}
+(async() => {
+    // Only the synchronous tests run
+    console.log(new SignUpValidator().validate({}))
 
-const loginValidator = new LoginValidator();
-const signUpValidator = new SignUpValidator();
+    // Both synchronous and asynchronous tests run
+    console.log(await new SignUpValidator().asyncValidate(
+        {
+            name: { first: 'First name' },
+            username: 'Username',
+            password: 'Password',
+            email: 'email@gmail.com'
+        }
+    ))
+})()
 
-// use validator as a normal validator
-console.log(loginValidator.validate({}));
-
-// express app config
-const app = express();
-app.use(express.json());
-
-// use validator as a middleware
-// note: the middleware method accepts status-code as an argument, 422 is the default
-app.post('/login', loginValidator.middleware(), (req, res) => {
-  res.status(200).json({message: 'Your attempts was not futile'});
-});
-
-app.post('/sign-up', signUpValidator.middleware(), (req, res) => {
-  res.status(200).json({message: 'Your attempts was not futile'});
-});
-
-app.listen(9000);
 
 ```
 ## Types and the corresponding validator classes
-A type-validator by default only checks the type of the value, the value can either be null/undefined or the given type, to make it required or fit in a certain range, you must call the appropriate method, eg. new StringField('email') only makes sure that the value is either a valid string or null/undefined, whereas new StringField('email').required() doesn't accept null/undefined, every such method has a default error message to return if the value isn't valid but you can pass your own messages too, the 'test' method allows you to add your own tests in form of functions, return 'true' if the value is valid and false if invalid, you can add as many tests as you want
+A type-validator by default only checks for the presence and type of the value, to make the value optional or fit in a certain range, you must call the appropriate method, eg. new StringField('email') only makes sure that the value not null/undefined and is a string, whereas new StringField('email', false) makes the email optional i.e allows either null/undefined or a string and new StringField('email').min(10) makes sure the email is at leats 10 characters long, every such method has a default error message to return if the value isn't as expected but you can pass your own messages too
 
-type-validators don't have to be a part of a big schema, you can use them to validate their respective types, eg. new StringField("username").required().validate(43), if value is valid, null is returned, otherwise an error message
+The 'test' method allows you to add your own custom tests in form of functions, take the value, run tests (async tests too) and return an array in [isValid, errorMessage] form, the first item in the returned must be a boolean indicating if the value passes the test and the second is the error message to be used in case the value failed the test
+
+## The test function has some flavors
+1) vanilla - a function that takes the value of the field as the only parameter, example below
+```javascript
+const rules = {
+    name: new StringField("Name").test((name) => {
+        return [name === "anubis", "Name must be anubis"]
+    })
+}
+```
+2) async vanilla - an async function that takes the value of the field as the only parameter, example below
+```javascript
+const rules = {
+    name: new StringField("Name").test(async (name) => {
+        const isValid = await new Promise((resolve) => {
+            setTimeout(resolve, 1000, true);
+        })
+        return [isValid, "Invalid name"]
+    })
+}
+```
+3) vanilla with dependencies - an function that takes the value of the field and other values that it depends on, the format is <TypeValidator>.test(testFunction, ["field"]), the first parameter is the test function and the second is an array of dependencies from the object being validated, if the dependency is a nested field just use the dot notation in the path like 'field1.field2', note that dependency values will be passed to your function in the same order you specified
+```javascript
+const rules = {
+    weight: new NumberField("Weight"),
+    unit: new StringField("Unit").test((unit, [weight]) => {
+        let isValid = false;
+        let message = "Invalid unit";
+        if (weight && !unit) {
+            message = "Unit for given weight is required";
+        } else if (unit && !weight) {
+            message = "Unit can only be given with weight";
+        } else {
+            isValid = true;
+        }
+        return [isValid, message];
+    }, ["weight"])
+}
+```
+3) async with dependencies - a dependent test, but asynchronous
+```javascript
+const rules = {
+    weight: new NumberField("Weight"),
+    unit: new StringField("Unit").test(async (unit, [weight]) => {
+        const isUnitValid = await new Promise((resolve) => {
+            setTimeout(resolve, 1000, true, 1000);
+        })
+        return [isUnitValid, "Invalid unit"];
+    }, ["weight"])
+}
+```
+**Note: the async test functions will be run concurrently using the Promise API, so feel free to use multiple async functions**
 
 ### Here is a list of the types and their respective type-validator classes
 
@@ -91,12 +143,12 @@ type-validators don't have to be a part of a big schema, you can use them to val
 - email(fieldName, [message]) -> returns a StringField instance that checks if the given value is an email
 
 - ### instance methods
+- requiredValueMessage(message) -> error message to return if the value is not provided
 - invalidTypeMessage(message) -> error message to return if the value is not a string,
-- required(message) -> makes the value required
 - min(min-range, [message]) -> the min number of characters
 - max(max-range, [message]) -> the max number of characters
 - match(regex, [message]) -> makes the value match the pattern
-- test((value) => {}, [message]) -> passes the value through this function to check it's validity
+- test((value) => {}) -> passes the value through this function to check it's validity
 
 
 ### number - new NumberField(fieldName)
@@ -105,8 +157,8 @@ type-validators don't have to be a part of a big schema, you can use them to val
 - gt(fieldName, minValue, [message]) -> returns a NumberField instance that checks if the given value is greater than the passed minValue
 
 - ### instance methods
-- invalidTypeMessage(message) -> error message to return if the value is not a number,
-- required(message) -> makes the value required
+- requiredValueMessage(message) -> error message to return if the value is not provided
+- invalidTypeMessage(message) -> error message to return if the value is not a number
 - min(minValue, [message]) -> the min value(inclusive)
 - max(maxValue, [message]) -> the max value(inclusive)
 - test((value) => {}, [message]) -> passes the value through this function to check it's validity
@@ -118,8 +170,8 @@ type-validators don't have to be a part of a big schema, you can use them to val
 - gt(fieldName, minValue, [message]) -> returns an IntegerField instance that checks if the given value is greater than the passed minValue
 
 - ### instance methods
-- invalidTypeMessage(message) -> error message to return if the value is not an integer,
-- required(message) -> makes the value required
+- requiredValueMessage(message) -> error message to return if the value is not provided
+- invalidTypeMessage(message) -> error message to return if the value is not an integer
 - min(minValue, [message]) -> the min value(inclusive)
 - max(maxValue, [message]) -> the max value(inclusive)
 - test((value) => {}, [message]) -> passes the value through this function to check it's validity
@@ -131,8 +183,8 @@ type-validators don't have to be a part of a big schema, you can use them to val
 - gt(fieldName, minValue, [message]) -> returns an FloatField instance that checks if the given value is greater than the passed minValue
 
 - ### instance methods
+- requiredValueMessage(message) -> error message to return if the value is not provided
 - invalidTypeMessage(message) -> error message to return if the value is not a float,
-- required(message) -> makes the value required
 - min(minValue, [message]) -> the min value(inclusive)
 - max(maxValue, [message]) -> the max value(inclusive)
 - test((value) => {}, [message]) -> passes the value through this function to check it's validity
@@ -144,8 +196,8 @@ type-validators don't have to be a part of a big schema, you can use them to val
 - gt(fieldName, minDate, [message]) -> returns an DateField instance that checks if the given value is a date after the passed minDate
 
 - ### instance methods
-- invalidTypeMessage(message) -> error message to return if the value is not a float,
-- required(message) -> makes the value required
+- requiredValueMessage(message) -> error message to return if the value is not provided
+- invalidTypeMessage(message) -> error message to return if the value is not a float
 - min(minValue, [message]) -> the min value(inclusive)
 - max(maxValue, [message]) -> the max value(inclusive)
 - test((value) => {}, [message]) -> passes the value through this function to check it's validity
@@ -162,8 +214,8 @@ type-validators don't have to be a part of a big schema, you can use them to val
 - object(fieldName, [message]) -> returns an ArrayField instance that checks if the given array contains only object values
 
 - ### instance methods
-- invalidTypeMessage(message) -> error message to return if the value is not an array,
-- required(message) -> makes the value required
+- requiredValueMessage(message) -> error message to return if the value is not provided
+- invalidTypeMessage(message) -> error message to return if the value is not an array
 - min(minValue, [message]) -> the min array length(inclusive)
 - max(maxValue, [message]) -> the max array length(inclusive)
 - values(type-validator, [message]) -> validates the array items with the type-validator passed
@@ -174,8 +226,8 @@ type-validators don't have to be a part of a big schema, you can use them to val
 ### object- new ObjectField(fieldName)
 
 - ### instance methods
-- invalidTypeMessage(message) -> error message to return if the value is not an array,
-- required(message) -> makes the value required
+- requiredValueMessage(message) -> error message to return if the value is not provided
+- invalidTypeMessage(message) -> error message to return if the value is not an array
 - min(minValue, [message]) -> the min number of keys(inclusive)
 - max(maxValue, [message]) -> the max number of keys(inclusive)
 - values(type-validator, [message]) -> validates the object values with the type-validator passed, doesn't validate keys, they'll always be strings
@@ -196,5 +248,5 @@ type-validators don't have to be a part of a big schema, you can use them to val
 
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first
+Pull requests and discussions are welcome. For major changes, please open an issue first
 to discuss what you would like to change.
