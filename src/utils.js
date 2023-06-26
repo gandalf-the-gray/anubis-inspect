@@ -1,53 +1,55 @@
-import { DATA_TYPE, JAVASCRIPT_TYPE } from "./constants.js";
+import { DATA_TYPE, JAVASCRIPT_TYPE, INVALID_DATE_MESSAGE } from "./constants.js";
+import { throwRequired } from "./errors.js";
 
-
-// Utilities
-// --------------------------------------------------------------------------------------------------
-// All validator classes will inherit from the following class
-// This will help to check if an object in the rules is a plain object or a validator
-export class ValidatorField {
-    constructor({valueIdentifier, type, isRequired}) {
+export class BaseField {
+    constructor({valueIdentifier = throwRequired("Field's name"), type, isRequired, range}) {
         this.valueIdentifier = valueIdentifier;
-        // It might seem strange that I'm making almost all internal utilities private
-        // but type is public, the 'type' getter will be used by other types such as objects and arrays
-        // to validate the values they contain, that is why it needs to be public
-        this.type = type;
         this.isRequired = isRequired;
+        this.type = type;
+        this.range = range;
         this.userDefinedTests = {sync: [], async: []};
         this.dependantTests = {sync: [], async: []};
     }
 
-    test(testFun, message = undefined) {
-        if(isAsyncFunction(testFun)) {
-            this.userDefinedTests.async.push([testFun, message]);
+    min(rangeMin = throwRequired("Minimum value"), message) {
+        this.range[0] = rangeMin;
+        this.setErrorMessageRangeMin(message);
+        return this;
+    }
+
+    max(rangeMax = throwRequired("Maximum value"), message) {
+        this.range[1] = rangeMax;
+        this.setErrorMessageRangeMax(message);
+        return this;
+    }
+
+    test(testFn = throwRequired("Test function"), dependencies) {
+        const isAsync = isAsyncFunction(testFn);
+        if(dependencies) {
+            if(isAsync) {
+                this.dependantTests.async.push([testFn, dependencies]);
+            } else {
+                this.dependantTests.sync.push([testFn, dependencies]);
+            }
         } else {
-            this.userDefinedTests.sync.push([testFun, message]);
+            if(isAsync) {
+                this.userDefinedTests.async.push(testFn);
+            } else {
+                this.userDefinedTests.sync.push(testFn);
+            }
         }
         return this;
     }
 
     assertUserDefinedTests(value) {
-        for(let [test, message] of this.userDefinedTests.sync) {
-            let isValid = test(value);
-            if(Array.isArray(isValid)) {
-                message = isValid[1];
-                isValid = isValid[0];
-            }
+        for(let test of this.userDefinedTests.sync) {
+            let [isValid, message] = test(value);
             if(!isValid) {
-                this.setErrorMessageFailedUserDefinedTest(message);
+                this.setErrorMessageUserDefinedTest(message);
                 return false;
             }
         }
         return true;
-    }
-
-    dependantTest(testFn, dependencies, message) {
-        if(isAsyncFunction(testFn)) {
-            this.dependantTests.async.push([testFn, dependencies, message]);
-        } else {
-            this.dependantTests.sync.push([testFn, dependencies, message]);
-        }
-        return this;
     }
 }
 
@@ -88,8 +90,6 @@ export function setObjectValue(object, address, value) {
         object = object[keys[i]];
     }
 }
-const errors = {};
-setObjectValue(errors, 'array', undefined);
 export function getObjectValue(object, address) {
     if(!object) {
         return undefined;
@@ -127,13 +127,12 @@ function isArray(value) {
     return isTruthyValue(value) && Array.isArray(value);
 }
 
-// TODO: should the pattrn 'value.constructor be used to check all types?
 function isObject(value){
     return isTruthyValue(value) && typeof value === JAVASCRIPT_TYPE.object && value.constructor === Object;
 }
 
 function isDate(value){
-    return new Date(value).toString() !== 'Invalid Date';
+    return new Date(value).toString() !== INVALID_DATE_MESSAGE;
 }
 
 function isBoolean(value) {

@@ -1,30 +1,29 @@
 import { DATA_TYPE, DATA_TYPE_TO_COMMON_NAME, DEFAULT_INVALID_VALUE_MESSAGE } from "../constants.js";
-import { ValidatorField, isNullish, isAsyncFunction, patternDescriptors, patterns, validators } from "../utils.js";
+import { BaseField, isNullish, patternDescriptors, patterns, validators } from "../utils.js";
 
-export class StringField extends ValidatorField {
-    static defaultIsRequired = false;
+export class StringField extends BaseField {
+    static defaultIsRequired = true;
     static defaultMinLength = 0;
     static defaultMaxLength = Infinity;
     static defaultPattern = null;
 
-    static email(valueIdentifier, message = undefined) {
+    static email(valueIdentifier, message) {
         return new StringField(valueIdentifier).match(patterns[patternDescriptors.email], message);
     }
 
-    static alphanum(valueIdentifier, message = undefined) {
+    static alphanum(valueIdentifier, message) {
         return new StringField(valueIdentifier).match(patterns[patternDescriptors.alphanumeric], message);
     }
 
-    constructor(valueIdentifier){
-        super({valueIdentifier, type: DATA_TYPE.string, isRequired: StringField.defaultIsRequired});
-        this.lengthRange = [StringField.defaultMinLength, StringField.defaultMaxLength];
+    constructor(valueIdentifier, isRequired = StringField.defaultIsRequired){
+        super({valueIdentifier, type: DATA_TYPE.string, range: [StringField.defaultMinLength, StringField.defaultMaxLength], isRequired});
         this.pattern = StringField.defaultPattern;
         this.setErrorMessageValueRequired();
         this.setErrorMessageInvalidType();
         this.setErrorMessageRangeMin();
         this.setErrorMessageRangeMax();
         this.setErrorMessageInvalidPattern();
-        this.setErrorMessageFailedUserDefinedTest();
+        this.setErrorMessageUserDefinedTest();
     }
 
     setErrorMessageValueRequired(message) {
@@ -32,49 +31,36 @@ export class StringField extends ValidatorField {
     }
 
     setErrorMessageInvalidType(message) {
-        this.errorMessageInvalidType = message !== undefined ? message : `invalid value, expected ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.string]}`;
+        this.errorMessageInvalidType = message !== undefined ? message : `Invalid value, expected ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.string]}`;
     }
 
     setErrorMessageRangeMin(message) {
-        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must have at least ${this.lengthRange[0]} characters`;
+        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must have at least ${this.range[0]} characters`;
     }
 
     setErrorMessageRangeMax(message) {
-        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must not have more than ${this.lengthRange[1]} characters`;
+        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must not have more than ${this.range[1]} characters`;
     }
 
     setErrorMessageInvalidPattern(message) {
-        this.errorMessageInvalidPattern = message !== undefined ? message : `invalid ${this.valueIdentifier}`;
+        this.errorMessageInvalidPattern = message !== undefined ? message : `Invalid ${this.valueIdentifier}`;
     }
 
-    setErrorMessageFailedUserDefinedTest(message) {
-        this.errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
+    setErrorMessageUserDefinedTest(message) {
+        this.errorMessageUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
     }
 
-    invalidTypeMessage(message = undefined) {
+    invalidTypeMessage(message) {
         this.setErrorMessageInvalidType(message);
         return this;
     }
 
-    required(message = undefined) {
-        this.isRequired = true;
+    requiredValueMessage(message) {
         this.setErrorMessageValueRequired(message);
         return this;
     }
 
-    min(rangeMin, message = undefined) {
-        this.lengthRange[0] = rangeMin;
-        this.setErrorMessageRangeMin(message);
-        return this;
-    }
-
-    max(rangeMax, message = undefined) {
-        this.lengthRange[1] = rangeMax;
-        this.setErrorMessageRangeMax(message);
-        return this;
-    }
-
-    match(pattern, message = undefined) {
+    match(pattern = throwRequired("Expression"), message) {
         this.pattern = pattern;
         this.setErrorMessageInvalidPattern(message);
         return this;
@@ -90,17 +76,17 @@ export class StringField extends ValidatorField {
         if(!validators[DATA_TYPE.string](value)) {
             return this.errorMessageInvalidType;
         }
-        if(value.length < this.lengthRange[0]) {
+        if(value.length < this.range[0]) {
             return this.errorMessageRangeMin;
         }
-        if(value.length > this.lengthRange[1]) {
+        if(value.length > this.range[1]) {
             return this.errorMessageRangeMax;
         }
         if(this.pattern && !this.pattern.test(value)) {
             return this.errorMessageInvalidPattern;
         }
         if(!this.assertUserDefinedTests(value)) {
-            return this.errorMessageFailedUserDefinedTest;
+            return this.errorMessageUserDefinedTest;
         }
         return null;
     }

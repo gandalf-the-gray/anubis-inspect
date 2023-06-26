@@ -1,15 +1,15 @@
-import { DATA_TYPE, DEFAULT_INVALID_VALUE_MESSAGE } from "./constants.js";
-export { ArrayField } from "./types/array.js";
-export { BooleanField } from "./types/boolean.js";
-export { DateField } from "./types/date.js";
-export { FloatField } from "./types/float.js";
-export { IntegerField } from "./types/integer.js";
-export { NullField } from "./types/null.js";
-export { NumberField } from "./types/number.js";
-export { ObjectField } from "./types/object.js";
-export { StringField } from "./types/string.js";
-export { UndefinedField } from "./types/undefined.js";
-import { setObjectValue, getObjectValue, validators } from "./utils.js";
+import { DATA_TYPE, DEFAULT_INVALID_VALUE_MESSAGE } from "./src/constants.js";
+export { ArrayField } from "./src/types/array.js";
+export { BooleanField } from "./src/types/boolean.js";
+export { DateField } from "./src/types/date.js";
+export { FloatField } from "./src/types/float.js";
+export { IntegerField } from "./src/types/integer.js";
+export { NullField } from "./src/types/null.js";
+export { NumberField } from "./src/types/number.js";
+export { ObjectField } from "./src/types/object.js";
+export { StringField } from "./src/types/string.js";
+export { UndefinedField } from "./src/types/undefined.js";
+import { setObjectValue, getObjectValue, validators } from "./src/utils.js";
 
 // Base validator class
 export class BaseValidator {
@@ -41,14 +41,10 @@ export class BaseValidator {
     validate(body) {
         let errors = this._validate(this.rules, body);            
         for(let i = 0; i < this.dependantTestList.sync.length; i++) {
-            let [fieldAddress, testFn, dependencies, message] = this.dependantTestList.sync[i];
+            let [fieldAddress, testFn, dependencies] = this.dependantTestList.sync[i];
             if(getObjectValue(errors, fieldAddress) === undefined) {
                 if(dependencies.every((dep) => getObjectValue(errors, dep) === undefined)) {
-                    let isValid = testFn(getObjectValue(body, fieldAddress), dependencies.map((dep) => getObjectValue(body, dep)));
-                    if(Array.isArray(isValid)) {
-                        message = isValid[1];
-                        isValid = isValid[0];
-                    }
+                    let [isValid, message] = testFn(getObjectValue(body, fieldAddress), dependencies.map((dep) => getObjectValue(body, dep)));
                     if(!isValid) {
                         errors = errors ? errors : {};
                         setObjectValue(errors, fieldAddress, message ? message : DEFAULT_INVALID_VALUE_MESSAGE);
@@ -77,7 +73,7 @@ export class BaseValidator {
         for(const bodyField in body) {
             if(rules[bodyField] === undefined) {
                 errors = errors ? errors : {};
-                errors[bodyField] = "unknown field";
+                errors[bodyField] = `Unknown field ${bodyField}`;
             }
         }
         return errors;
@@ -91,8 +87,8 @@ export class BaseValidator {
                 continue;
             }
             this.asyncTestList = this.asyncTestList.concat(
-                rules[ruleField].userDefinedTests.async.map(([testFn, message]) => {
-                    return [address, testFn, message ? message : DEFAULT_INVALID_VALUE_MESSAGE];
+                rules[ruleField].userDefinedTests.async.map((testFn) => {
+                    return [address, testFn];
                 })
             );
         }
@@ -105,14 +101,14 @@ export class BaseValidator {
                 this.cachedependantTests(rules[ruleField], address);
                 continue;
             }
-            this.dependantTestList.sync = this.dependantTestList.sync.concat(
-                rules[ruleField].dependantTests.sync.map(([testFn, dependencies, message]) => {
-                    return [address, testFn, dependencies, message ? message : DEFAULT_INVALID_VALUE_MESSAGE];
+            this.dependantTestList.sync.push(
+                ...rules[ruleField].dependantTests.sync.map(([testFn, dependencies]) => {
+                    return [address, testFn, dependencies];
                 })
             );
-            this.dependantTestList.async = this.dependantTestList.async.concat(
-                rules[ruleField].dependantTests.async.map(([testFn, dependencies, message]) => {
-                    return [address, testFn, dependencies, message ? message : DEFAULT_INVALID_VALUE_MESSAGE];
+            this.dependantTestList.async.push(
+                ...rules[ruleField].dependantTests.async.map(([testFn, dependencies]) => {
+                    return [address, testFn, dependencies];
                 })
             );
         }
@@ -120,21 +116,16 @@ export class BaseValidator {
 
     async asyncValidate(body, res) {
         let errors = this.validate(body);
-        // Note: every element in asyncTestQueue will be [address, testFn, message]
+        // Note: every element in asyncTestQueue will be [address, testFn]
         const validAsyncTests = this.asyncTestList.filter(
-            (task) => getObjectValue(errors, task[0]) === undefined
+            (test) => getObjectValue(errors, test[0]) === undefined
         );
         if(validAsyncTests.length > 0) {
             const results = await Promise.all(
-                validAsyncTests.map((task) => task[1](getObjectValue(body, task[0]), res))
+                validAsyncTests.map((test) => test[1](getObjectValue(body, test[0]), res))
             );
             for(let i = 0; i < results.length; i++) {
-                let isValid = results[i];
-                let message = validAsyncTests[i][2];
-                if(Array.isArray(isValid)) {
-                    message = isValid[1];
-                    isValid = isValid[0];
-                }
+                let [isValid, message] = results[i];
                 if(!isValid) {
                     errors = errors ? errors : {};
                     setObjectValue(errors, validAsyncTests[i][0], message ? message : DEFAULT_INVALID_VALUE_MESSAGE);
@@ -142,30 +133,25 @@ export class BaseValidator {
             }
         }
 
-        // Note: every dependantTest will be [address, testFn, dependencies, message]
-        const validAsyncDependantTests = this.dependantTestList.async.filter((item) => {
-            const [fieldAddress, _, dependencies] = item;
+        // Note: every dependantTest will be [address, testFn, dependencies]
+        const validDependantTests = this.dependantTestList.async.filter((test) => {
+            const [fieldAddress, _, dependencies] = test;
             const isFieldValid = getObjectValue(errors, fieldAddress) === undefined;
             const areDependenciesValid = dependencies.every((dep) => getObjectValue(errors, dep) === undefined);
             return isFieldValid && areDependenciesValid;
         })
 
-        if(validAsyncDependantTests.length > 0) {
+        if(validDependantTests.length > 0) {
             const results = await Promise.all(
-                validAsyncDependantTests.map(([fieldAddress, testFn, dependencies]) => {
+                validDependantTests.map(([fieldAddress, testFn, dependencies]) => {
                     const dependencyValues = dependencies.map((dep) => getObjectValue(body, dep));
                     return testFn(getObjectValue(body, fieldAddress), dependencyValues);
                 })
             )
             for(let i = 0; i < results.length; i++) {
-                let isValid = results[i];
-                let message = validAsyncDependantTests[i][3];
-                if(Array.isArray(isValid)) {
-                    message = isValid[1];
-                    isValid = isValid[0];
-                }
+                let [isValid, message] = results[i];
                 if(!isValid) {
-                    const address = validAsyncDependantTests[i][0];
+                    const address = validDependantTests[i][0];
                     errors = errors ? errors : {};
                     setObjectValue(errors, address, message ? message : DEFAULT_INVALID_VALUE_MESSAGE);
                 }

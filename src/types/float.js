@@ -1,27 +1,27 @@
 import { DATA_TYPE, DATA_TYPE_TO_COMMON_NAME, DEFAULT_INVALID_VALUE_MESSAGE } from "../constants.js";
-import { ValidatorField, isNullish, isAsyncFunction, validators } from "../utils.js";
+import { BaseField, isNullish, validators } from "../utils.js";
+import { throwRequired } from "../errors.js";
 
-export class FloatField extends ValidatorField {
-    static defaultIsRequired = false;
+export class FloatField extends BaseField {
+    static defaultIsRequired = true;
     static defaultMin = -Infinity;
     static defaultMax = Infinity;
 
-    static lt(valueIdentifier, maxValue, message = undefined){
+    static lt(valueIdentifier, maxValue, message){
         return new FloatField(valueIdentifier).max(maxValue - 1, message);
     }
 
-    static gt(valueIdentifier, minValue, message = undefined){
+    static gt(valueIdentifier, minValue, message){
         return new FloatField(valueIdentifier).min(minValue + 1, message);
     }
 
-    constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.float, isRequired: FloatField.defaultIsRequired});
-        this.valueRange = [FloatField.defaultMin, FloatField.defaultMax];
+    constructor(valueIdentifier, isRequired = FloatField.defaultIsRequired) {
+        super({valueIdentifier, type: DATA_TYPE.float, range: [FloatField.defaultMin, FloatField.defaultMax], isRequired});
         this.setErrorMessageRequiredValue();
         this.setErrorMessageInvalidType();
         this.setErrorMessageRangeMin();
         this.setErrorMessageRangeMax();
-        this.setErrorMessageFailedUserDefinedTest();
+        this.setErrorMessageUserDefinedTest();
     }
 
     setErrorMessageRequiredValue(message) {
@@ -29,39 +29,38 @@ export class FloatField extends ValidatorField {
     }
 
     setErrorMessageInvalidType(message) {
-        this.errorMessageInvalidType = message !== undefined ? message : `invalid value, expected a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.float]}`;
+        this.errorMessageInvalidType = message !== undefined ? message : `Invalid value, expected a ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.float]}`;
     }
 
     setErrorMessageRangeMin(message) {
-        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must be at least ${this.valueRange[0]}`;
+        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must be at least ${this.range[0]}`;
     }
 
     setErrorMessageRangeMax(message) {
-        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must not be greater than ${this.valueRange[1]}`;
+        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must not be greater than ${this.range[1]}`;
     }
 
-    setErrorMessageFailedUserDefinedTest(message) {
-        this.errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
+    setErrorMessageUserDefinedTest(message) {
+        this.errorMessageUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
     }
 
-    invalidTypeMessage(message = undefined) {
+    invalidTypeMessage(message) {
         this.setErrorMessageInvalidType(message);
         return this;
     }
 
-    required(message = undefined) {
-        this.isRequired = true;
+    requiredValueMessage(message) {
         this.setErrorMessageRequiredValue(message);
         return this;
     }
 
-    min(rangeMin, message = undefined) {
-        this.valueRange[0] = rangeMin;
+    min(rangeMin = throwRequired("Minimum value"), message) {
+        this.range[0] = rangeMin;
         this.setErrorMessageRangeMin(message);
         return this;
     }
 
-    max(rangeMax, message = undefined) {
+    max(rangeMax = throwRequired("Maximum value"), message) {
         this.valueIdentifier[1] = rangeMax;
         this.setErrorMessageRangeMax(message);
         return this;
@@ -77,14 +76,14 @@ export class FloatField extends ValidatorField {
         if(!validators[DATA_TYPE.float](value)) {
             return this.errorMessageInvalidType;
         }
-        if(value < this.valueRange[0]) {
+        if(value < this.range[0]) {
             return this.errorMessageRangeMin;
         }
-        if(value > this.valueRange[1]) {
+        if(value > this.range[1]) {
             return this.errorMessageRangeMax;
         }
         if(!this.assertUserDefinedTests(value)) {
-            return this.errorMessageFailedUserDefinedTest;
+            return this.errorMessageUserDefinedTest;
         }
         return null;
     }

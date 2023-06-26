@@ -1,15 +1,14 @@
 import { DATA_TYPE, DATA_TYPE_TO_COMMON_NAME, DEFAULT_INVALID_VALUE_MESSAGE } from "../constants.js";
-import { ValidatorField, isNullish, isAsyncFunction, validators } from "../utils.js";
+import { BaseField, isNullish, validators } from "../utils.js";
 
-export class ObjectField extends ValidatorField {
-    static defaultIsRequired = false;
+export class ObjectField extends BaseField {
+    static defaultIsRequired = true;
     static defaultValueType = null;
     static defaultRangeMin = 0;
     static defaultRangeMax = Infinity;
 
-    constructor(valueIdentifier) {
-        super({valueIdentifier, type: DATA_TYPE.object, isRequired: ObjectField.defaultIsRequired});
-        this.lengthRange = [ObjectField.defaultRangeMin, ObjectField.defaultRangeMax];
+    constructor(valueIdentifier, isRequired = ObjectField.defaultIsRequired) {
+        super({valueIdentifier, type: DATA_TYPE.object, range: [ObjectField.defaultRangeMin, ObjectField.defaultRangeMax], isRequired});
         this.containedValueValidator = ObjectField.defaultValueType;
         this.nested = true;
         this.setErrorMessageRequiredValue();
@@ -18,7 +17,7 @@ export class ObjectField extends ValidatorField {
         this.setErrorMessageRangeMax();
         this.setErrorMessageNested();
         this.setErrorMessageInvalidContainedValue();
-        this.setErrorMessageFailedUserDefinedTest();
+        this.setErrorMessageUserDefinedTest();
     }
 
     setErrorMessageRequiredValue(message) {
@@ -26,15 +25,15 @@ export class ObjectField extends ValidatorField {
     }
 
     setErrorMessageInvalidType(message) {
-        this.errorMessageInvalidType = message !== undefined ? message : `invalid value, expected an ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.object]}`;
+        this.errorMessageInvalidType = message !== undefined ? message : `Invalid value, expected an ${DATA_TYPE_TO_COMMON_NAME[DATA_TYPE.object]}`;
     }
 
     setErrorMessageRangeMin(message) {
-        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must have at least ${this.lengthRange[0]} values`;
+        this.errorMessageRangeMin = message !== undefined ? message : `${this.valueIdentifier} must have at least ${this.range[0]} values`;
     }
 
     setErrorMessageRangeMax(message) {
-        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must have more than ${this.lengthRange[1]} values`;
+        this.errorMessageRangeMax = message !== undefined ? message : `${this.valueIdentifier} must have more than ${this.range[1]} values`;
     }
 
     setErrorMessageNested(message) {
@@ -50,8 +49,8 @@ export class ObjectField extends ValidatorField {
         this.errorMessageInvalidContainedValue = message;
     }
 
-    setErrorMessageFailedUserDefinedTest(message) {
-        this.errorMessageFailedUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
+    setErrorMessageUserDefinedTest(message) {
+        this.errorMessageUserDefinedTest = message !== undefined ? message : DEFAULT_INVALID_VALUE_MESSAGE;
     }
 
     assertContainedValues(object) {
@@ -69,36 +68,23 @@ export class ObjectField extends ValidatorField {
         return null;
     }
 
-    invalidTypeMessage(message = undefined) {
+    invalidTypeMessage(message) {
         this.setErrorMessageInvalidType(message);
         return this;
     }
 
-    required(message = undefined) {
-        this.isRequired = true;
+    requiredValueMessage(message) {
         this.setErrorMessageRequiredValue(message);
         return this;
     }
 
-    min(rangeMin, message = undefined) {
-        this.lengthRange[0] = rangeMin;
-        this.setErrorMessageRangeMin(message);
-        return this;
-    }
-
-    max(rangeMax, message = undefined) {
-        this.lengthRange[1] = rangeMax;
-        this.setErrorMessageRangeMax(message);
-        return this;
-    }
-
-    values(type, message = undefined) {
+    values(type, message) {
         this.containedValueValidator = type;
         this.setErrorMessageInvalidContainedValue(message);
         return this;
     }
 
-    notNested(message = undefined) {
+    notNested(message) {
         this.nested = false;
         this.setErrorMessageNested(message);
         return this;
@@ -115,10 +101,10 @@ export class ObjectField extends ValidatorField {
             return this.errorMessageInvalidType;
         }
         const keys = Object.keys(value);
-        if(keys.length < this.lengthRange[0]) {
+        if(keys.length < this.range[0]) {
             return this.errorMessageRangeMin;
         }
-        if(keys.length > this.lengthRange[1]) {
+        if(keys.length > this.range[1]) {
             return this.errorMessageRangeMax;
         }
         if(this.containedValueValidator !== null || !this.nested){
@@ -128,7 +114,7 @@ export class ObjectField extends ValidatorField {
             }
         }
         if(!this.assertUserDefinedTests(value)) {
-            return this.errorMessageFailedUserDefinedTest;
+            return this.errorMessageUserDefinedTest;
         }
         return null;
     }
