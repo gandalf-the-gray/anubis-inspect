@@ -4,10 +4,10 @@ A simple and extendible object validator
 
 ## Contents
 1) Installation
-2) How it works
+2) In a nutshell
 3) Usage
-4) Types
-5) Ways of validating
+4) Things to keep in mind
+5) Types
 
 ## Installation
 
@@ -76,14 +76,19 @@ class SignUpValidator extends LoginValidator {
     ))
 })()
 
+// Use with express middlewares
+const app = express();
+app.get("/sign-up", new SignUpValidator().middleware(), (req, res, next) => {
+  // API logic
+})
 
 ```
-## Types and the corresponding validator classes
+## Things to keep in mind
 A type-validator by default only checks for the presence and type of the value, to make the value optional or fit in a certain range, you must call the appropriate method, eg. new StringField('email') only makes sure that the value not null/undefined and is a string, whereas new StringField('email', false) makes the email optional i.e allows either null/undefined or a string and new StringField('email').min(10) makes sure the email is at leats 10 characters long, every such method has a default error message to return if the value isn't as expected but you can pass your own messages too
 
 The 'test' method allows you to add your own custom tests in form of functions, take the value, run tests (async tests too) and return an array in [isValid, errorMessage] form, the first item in the returned must be a boolean indicating if the value passes the test and the second is the error message to be used in case the value failed the test
 
-## The test function has some flavors
+### The test function has some flavors
 1) vanilla - a function that takes the value of the field as the only parameter, example below
 ```javascript
 const rules = {
@@ -135,7 +140,7 @@ const rules = {
 ```
 **Note: the async test functions will be run concurrently using the Promise API, so feel free to use multiple async functions**
 
-### Here is a list of the types and their respective type-validator classes
+## Types and their corresponding classes
 
 ### string - new StringField(fieldName)
 - ### static methods
