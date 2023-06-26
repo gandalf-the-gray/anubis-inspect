@@ -102,6 +102,7 @@ const rules = {
 ```javascript
 const rules = {
     name: new StringField("Name").test(async (name) => {
+        // simulating an API call
         const isValid = await new Promise((resolve) => {
             setTimeout(resolve, 1000, true);
         })
@@ -132,6 +133,7 @@ const rules = {
 const rules = {
     weight: new NumberField("Weight"),
     unit: new StringField("Unit").test(async (unit, [weight]) => {
+        // simulating an API call
         const isUnitValid = await new Promise((resolve) => {
             setTimeout(resolve, 1000, true, 1000);
         })
