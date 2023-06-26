@@ -55,6 +55,7 @@ const signUpRules = {
         })
 }
 
+// SignUpValidaor will inherit the rules defined in LoginValidator
 class SignUpValidator extends LoginValidator {
     constructor() {
         super();
